@@ -1,0 +1,3450 @@
+{
+  "meta": {
+    "domain": "crypto-perp",
+    "targets": {
+      "contract-gmx": "GMX v1 Vault + v2 DataStore on Arbitrum (public RPC, read-only)",
+      "api-gmx": "GMX public price and market endpoints (no key)",
+      "fe-gmx": "app.gmx.io trading screen (no wallet)",
+      "contract-perpdex": "PerpDEX on anvil (chainId 31337), written in this repository",
+      "db": "SQLite written by the mini-api indexer",
+      "api-mini": "mini-api REST over that SQLite",
+      "bot": "the bot in be/bot, trading on PerpDEX"
+    },
+    "idPolicy": "immutable",
+    "nextId": 302,
+    "note": "IDs are allocated here once and never reused. Every scenario carries @case:N; an N missing here is an error, not a new case."
+  },
+  "cases": {
+    "1": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "Reserved collateral never exceeds the pool",
+      "priority": "High",
+      "steps": [
+        "eth_call poolAmounts(address) and reservedAmounts(address) on the Vault",
+        "Expect reservedAmount <= poolAmount, compared as BigInt"
+      ]
+    },
+    "2": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "The oracle spread is never inverted",
+      "priority": "High",
+      "steps": [
+        "eth_call getMinPrice(address) and getMaxPrice(address)",
+        "Expect minPrice <= maxPrice",
+        "The per-source feed readings are NOT exposed -> not observable"
+      ]
+    },
+    "3": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "Configured token weights sum to the cached total",
+      "priority": "High",
+      "steps": [
+        "Enumerate allWhitelistedTokens(uint256) up to allWhitelistedTokensLength()",
+        "Sum tokenWeights(address) over whitelisted ones",
+        "Expect the sum to equal totalTokenWeights()"
+      ]
+    },
+    "4": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "Maximum leverage implies a usable initial margin",
+      "priority": "High",
+      "steps": [
+        "eth_call maxLeverage(); 10000 = 1x",
+        "Expect 1x <= maxLeverage <= 200x and initial margin above zero"
+      ]
+    },
+    "5": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "The margin fee stays inside a sane bound",
+      "priority": "Medium",
+      "steps": [
+        "eth_call marginFeeBasisPoints()",
+        "Expect <= 100 bps (1%)"
+      ]
+    },
+    "6": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "The funding timestamp is well formed",
+      "priority": "Medium",
+      "steps": [
+        "eth_call lastFundingTimes(address) and fundingInterval()",
+        "Expect not in the future",
+        "Expect lastFundingTime mod fundingInterval == 0 (freshness is activity, NOT asserted)"
+      ]
+    },
+    "7": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "The token under test is actually configured",
+      "priority": "Medium",
+      "steps": [
+        "eth_call whitelistedTokens(address) and stableTokens(address)",
+        "Expect whitelisted true and stable false for WETH"
+      ]
+    },
+    "8": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "Short open interest is backed by a recorded average price",
+      "priority": "High",
+      "steps": [
+        "eth_call globalShortSizes(address) and globalShortAveragePrices(address)",
+        "A non-zero size must have a non-zero average price"
+      ]
+    },
+    "9": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "Ticker prices for ETH are ordered and positive",
+      "priority": "High",
+      "steps": [
+        "GET prices/tickers, take tokenSymbol=ETH",
+        "Expect minPrice <= maxPrice as BigInt, both > 0"
+      ]
+    },
+    "10": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "Ticker prices for BTC are ordered and positive",
+      "priority": "High",
+      "steps": [
+        "GET prices/tickers, take tokenSymbol=BTC",
+        "Expect minPrice <= maxPrice as BigInt, both > 0"
+      ]
+    },
+    "11": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "Ticker prices for SOL are ordered and positive",
+      "priority": "High",
+      "steps": [
+        "GET prices/tickers, take tokenSymbol=SOL",
+        "Expect minPrice <= maxPrice as BigInt, both > 0"
+      ]
+    },
+    "12": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "The 24 hour summary for ETH is internally consistent",
+      "priority": "Medium",
+      "steps": [
+        "GET prices/24h, take tokenSymbol=ETH",
+        "Expect low <= open <= high and low <= close <= high"
+      ]
+    },
+    "13": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "The 24 hour summary for BTC is internally consistent",
+      "priority": "Medium",
+      "steps": [
+        "GET prices/24h, take tokenSymbol=BTC",
+        "Expect low <= open <= high and low <= close <= high"
+      ]
+    },
+    "14": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "The 24 hour summary for SOL is internally consistent",
+      "priority": "Medium",
+      "steps": [
+        "GET prices/24h, take tokenSymbol=SOL",
+        "Expect low <= open <= high and low <= close <= high"
+      ]
+    },
+    "15": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "Candles for ETH are ordered and well formed",
+      "priority": "Medium",
+      "steps": [
+        "GET prices/candles?tokenSymbol=ETH&period=1m&limit=10",
+        "Expect timestamps strictly decreasing, spaced 60 s, each low <= open,close <= high"
+      ]
+    },
+    "16": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "Candles for BTC are ordered and well formed",
+      "priority": "Medium",
+      "steps": [
+        "GET prices/candles?tokenSymbol=BTC&period=1m&limit=10",
+        "Expect timestamps strictly decreasing, spaced 60 s, each low <= open,close <= high"
+      ]
+    },
+    "17": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "Candles for SOL are ordered and well formed",
+      "priority": "Medium",
+      "steps": [
+        "GET prices/candles?tokenSymbol=SOL&period=1m&limit=10",
+        "Expect timestamps strictly decreasing, spaced 60 s, each low <= open,close <= high"
+      ]
+    },
+    "18": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "The ticker for ETH agrees with its latest candle",
+      "priority": "High",
+      "steps": [
+        "GET prices/tickers and prices/candles for ETH",
+        "Scale ticker by 10^(30-decimals); expect within 0.5% of latest candle close"
+      ]
+    },
+    "19": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "The ticker for BTC agrees with its latest candle",
+      "priority": "High",
+      "steps": [
+        "GET prices/tickers and prices/candles for BTC",
+        "Scale ticker by 10^(30-decimals); expect within 0.5% of latest candle close"
+      ]
+    },
+    "20": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "The ticker for SOL agrees with its latest candle",
+      "priority": "High",
+      "steps": [
+        "GET prices/tickers and prices/candles for SOL",
+        "Scale ticker by 10^(30-decimals); expect within 0.5% of latest candle close"
+      ]
+    },
+    "21": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "The ticker for ETH is fresh",
+      "priority": "Medium",
+      "steps": [
+        "GET prices/tickers, read updatedAt",
+        "Expect now - updatedAt <= 300 s and updatedAt <= now"
+      ]
+    },
+    "22": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "The ticker for BTC is fresh",
+      "priority": "Medium",
+      "steps": [
+        "GET prices/tickers, read updatedAt",
+        "Expect now - updatedAt <= 300 s and updatedAt <= now"
+      ]
+    },
+    "23": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "The ticker for SOL is fresh",
+      "priority": "Medium",
+      "steps": [
+        "GET prices/tickers, read updatedAt",
+        "Expect now - updatedAt <= 300 s and updatedAt <= now"
+      ]
+    },
+    "24": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "The market configuration for ETH points at the ticker token",
+      "priority": "High",
+      "steps": [
+        "GET v1/markets/config, find the ETH/USD market; GET prices/tickers",
+        "Expect indexTokenAddress == ticker tokenAddress (case-insensitive) and isDisabled == false"
+      ]
+    },
+    "25": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "The market configuration for BTC points at the ticker token",
+      "priority": "High",
+      "steps": [
+        "GET v1/markets/config, find the BTC/USD market; GET prices/tickers",
+        "Expect indexTokenAddress == ticker tokenAddress (case-insensitive) and isDisabled == false"
+      ]
+    },
+    "26": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "The market configuration for SOL points at the ticker token",
+      "priority": "High",
+      "steps": [
+        "GET v1/markets/config, find the SOL/USD market; GET prices/tickers",
+        "Expect indexTokenAddress == ticker tokenAddress (case-insensitive) and isDisabled == false"
+      ]
+    },
+    "27": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "Open interest for ETH is non-negative and fresh",
+      "priority": "Medium",
+      "steps": [
+        "GET v1/markets/values for the ETH/USD market",
+        "Expect longInterestUsd >= 0, shortInterestUsd >= 0, now - updatedAt <= 600 s"
+      ]
+    },
+    "28": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "Open interest for BTC is non-negative and fresh",
+      "priority": "Medium",
+      "steps": [
+        "GET v1/markets/values for the BTC/USD market",
+        "Expect longInterestUsd >= 0, shortInterestUsd >= 0, now - updatedAt <= 600 s"
+      ]
+    },
+    "29": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "Open interest for SOL is non-negative and fresh",
+      "priority": "Medium",
+      "steps": [
+        "GET v1/markets/values for the SOL/USD market",
+        "Expect longInterestUsd >= 0, shortInterestUsd >= 0, now - updatedAt <= 600 s"
+      ]
+    },
+    "30": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "An unsupported candle period is rejected with a client error",
+      "priority": "Low",
+      "steps": [
+        "GET prices/candles?tokenSymbol=ETH&period=7m",
+        "Expect HTTP 400 and an error body listing the supported periods"
+      ]
+    },
+    "31": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "An unknown token is rejected with a client error",
+      "priority": "Low",
+      "steps": [
+        "GET prices/candles?tokenSymbol=NOSUCHTOKEN&period=1m",
+        "Expect HTTP 400 and an error body saying unsupported token"
+      ]
+    },
+    "32": {
+      "module": "03. FE — trading screen",
+      "layer": "FE/UI",
+      "tier": "fe-gmx",
+      "title": "The ETH/USD price on screen agrees with the ticker",
+      "priority": "High",
+      "steps": [
+        "Open the trading screen, select ETH/USD through the pair dropdown, wait for the 24H VOLUME figure",
+        "Read the header price by label; GET prices/tickers",
+        "Expect |screen - ticker| / ticker <= 0.5%"
+      ]
+    },
+    "33": {
+      "module": "03. FE — trading screen",
+      "layer": "FE/UI",
+      "tier": "fe-gmx",
+      "title": "The BTC/USD price on screen agrees with the ticker",
+      "priority": "High",
+      "steps": [
+        "Open the trading screen, select BTC/USD through the pair dropdown, wait for the 24H VOLUME figure",
+        "Read the header price by label; GET prices/tickers",
+        "Expect |screen - ticker| / ticker <= 0.5%"
+      ]
+    },
+    "34": {
+      "module": "03. FE — trading screen",
+      "layer": "FE/UI",
+      "tier": "fe-gmx",
+      "title": "The SOL/USD price on screen agrees with the ticker",
+      "priority": "High",
+      "steps": [
+        "Open the trading screen, select SOL/USD through the pair dropdown, wait for the 24H VOLUME figure",
+        "Read the header price by label; GET prices/tickers",
+        "Expect |screen - ticker| / ticker <= 0.5%"
+      ]
+    },
+    "35": {
+      "module": "03. FE — trading screen",
+      "layer": "FE/UI",
+      "tier": "fe-gmx",
+      "title": "The ETH/USD open interest on screen is the API tokens at the current price",
+      "priority": "High",
+      "steps": [
+        "Read OPEN INTEREST long and short off the header, with the rounding unit shown",
+        "GET v1/markets/values (interestInTokens) and prices/tickers (price)",
+        "Expect |screen - tokens x price| <= display unit + 2% of the value (prices move between reads)"
+      ]
+    },
+    "36": {
+      "module": "03. FE — trading screen",
+      "layer": "FE/UI",
+      "tier": "fe-gmx",
+      "title": "The BTC/USD open interest on screen is the API tokens at the current price",
+      "priority": "High",
+      "steps": [
+        "Read OPEN INTEREST long and short off the header, with the rounding unit shown",
+        "GET v1/markets/values (interestInTokens) and prices/tickers (price)",
+        "Expect |screen - tokens x price| <= display unit + 2% of the value (prices move between reads)"
+      ]
+    },
+    "37": {
+      "module": "03. FE — trading screen",
+      "layer": "FE/UI",
+      "tier": "fe-gmx",
+      "title": "The SOL/USD open interest on screen is the API tokens at the current price",
+      "priority": "High",
+      "steps": [
+        "Read OPEN INTEREST long and short off the header, with the rounding unit shown",
+        "GET v1/markets/values (interestInTokens) and prices/tickers (price)",
+        "Expect |screen - tokens x price| <= display unit + 2% of the value (prices move between reads)"
+      ]
+    },
+    "38": {
+      "module": "03. FE — trading screen",
+      "layer": "FE/UI",
+      "tier": "fe-gmx",
+      "title": "The ETH/USD open-interest split is consistent with its own figures",
+      "priority": "Medium",
+      "steps": [
+        "Read the (L%/S%) split and the two OI amounts from the same header line",
+        "Expect L% within 1 point of long / (long + short) x 100, allowing for the rounding of both"
+      ]
+    },
+    "39": {
+      "module": "03. FE — trading screen",
+      "layer": "FE/UI",
+      "tier": "fe-gmx",
+      "title": "The BTC/USD open-interest split is consistent with its own figures",
+      "priority": "Medium",
+      "steps": [
+        "Read the (L%/S%) split and the two OI amounts from the same header line",
+        "Expect L% within 1 point of long / (long + short) x 100, allowing for the rounding of both"
+      ]
+    },
+    "40": {
+      "module": "03. FE — trading screen",
+      "layer": "FE/UI",
+      "tier": "fe-gmx",
+      "title": "The SOL/USD open-interest split is consistent with its own figures",
+      "priority": "Medium",
+      "steps": [
+        "Read the (L%/S%) split and the two OI amounts from the same header line",
+        "Expect L% within 1 point of long / (long + short) x 100, allowing for the rounding of both"
+      ]
+    },
+    "41": {
+      "module": "03. FE — trading screen",
+      "layer": "FE/UI",
+      "tier": "fe-gmx",
+      "title": "The ETH/USD price on screen agrees with the on-chain oracle",
+      "priority": "High",
+      "steps": [
+        "Read the header price; eth_call Vault.getMaxPrice(WETH) on Arbitrum, scale by 1e30",
+        "Expect |screen - chain| / chain <= 0.5%"
+      ]
+    },
+    "42": {
+      "module": "03. FE — trading screen",
+      "layer": "FE/UI",
+      "tier": "fe-gmx",
+      "title": "The BTC/USD price on screen agrees with the on-chain oracle",
+      "priority": "High",
+      "steps": [
+        "Read the header price; eth_call Vault.getMaxPrice(WBTC) on Arbitrum, scale by 1e30",
+        "Expect |screen - chain| / chain <= 0.5%"
+      ]
+    },
+    "43": {
+      "key": "acct.init",
+      "module": "01. Accounts & collateral",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "An account can be initialised exactly once",
+      "priority": "High",
+      "steps": [
+        "call initializeAccount() → expect event AccountInitialized(account)",
+        "call accountExists(account) → expect true",
+        "call initializeAccount() again → expect revert AccountExists()"
+      ]
+    },
+    "44": {
+      "key": "acct.deposit.requires",
+      "module": "01. Accounts & collateral",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Deposit before initialisation is rejected",
+      "priority": "High",
+      "steps": [
+        "approve(vault, 100) then call deposit(100) → expect revert AccountNotFound()"
+      ]
+    },
+    "45": {
+      "key": "acct.deposit.ledger",
+      "module": "01. Accounts & collateral",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Deposit moves tokens into the vault and credits the ledger by the same amount",
+      "priority": "High",
+      "steps": [
+        "read vault.reserves() → (held0, ledger0)",
+        "call deposit(1000e6) → expect event Deposited(account, 1000e6)",
+        "read vault.balanceOf(account) → expect +1000e6",
+        "read vault.reserves() → expect held and ledger both +1000e6"
+      ]
+    },
+    "46": {
+      "key": "acct.withdraw.free",
+      "module": "01. Accounts & collateral",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Withdrawal is capped at free collateral",
+      "priority": "High",
+      "steps": [
+        "read freeCollateral(account) → f",
+        "call withdraw(f + 1) → expect revert InsufficientCollateral(f, f+1)",
+        "call withdraw(f) → expect success",
+        "read freeCollateral(account) → expect ≤ 0"
+      ]
+    },
+    "47": {
+      "key": "acct.withdraw.negative",
+      "module": "01. Accounts & collateral",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "An account below zero can withdraw nothing",
+      "priority": "Medium",
+      "steps": [
+        "read vault.balanceOf(account) → expect < 0",
+        "call withdraw(1) → expect revert InsufficientCollateral"
+      ]
+    },
+    "48": {
+      "key": "acct.zero",
+      "module": "01. Accounts & collateral",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Zero-amount deposit and withdrawal are rejected",
+      "priority": "Low",
+      "steps": [
+        "call deposit(0) → expect revert ZeroAmount()",
+        "call withdraw(0) → expect revert ZeroAmount()"
+      ]
+    },
+    "49": {
+      "key": "acct.vault.only",
+      "module": "01. Accounts & collateral",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Only the exchange may move vault balances",
+      "priority": "High",
+      "steps": [
+        "call vault.transferBetween(a, b, 1, \"x\") from a stranger → expect revert NotExchange()",
+        "call vault.withdrawFor(a, a, 1) from a stranger → expect revert NotExchange()"
+      ]
+    },
+    "50": {
+      "key": "acct.getter",
+      "module": "01. Accounts & collateral",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "getAccount reports existence, open orders and creation time",
+      "priority": "Low",
+      "steps": [
+        "call getAccount(account) → expect exists true, openOrders 0, createdAt == block.timestamp of init",
+        "place a resting limit → call getAccount → expect openOrders 1"
+      ]
+    },
+    "51": {
+      "key": "mkt.add",
+      "module": "02. Markets & status",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Admin adds a market and it is immediately Active",
+      "priority": "High",
+      "steps": [
+        "call addMarket(\"LINK-PERP\", params) → expect returned id == marketCount before",
+        "read getMarket(id).status → expect Active",
+        "read getMarket(id).lastFundingTime → expect a multiple of fundingIntervalSec"
+      ]
+    },
+    "52": {
+      "key": "mkt.add.notadmin",
+      "module": "02. Markets & status",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "A non-admin cannot add a market",
+      "priority": "High",
+      "steps": [
+        "call addMarket(...) → expect revert NotAdmin()"
+      ]
+    },
+    "53": {
+      "key": "mkt.params.validate",
+      "module": "02. Markets & status",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Parameters that cannot work together are refused",
+      "priority": "High",
+      "steps": [
+        "params with maintenanceMarginBps == initialMarginBps → expect revert BadParams(\"maintenanceMarginBps\")",
+        "params with initialMarginBps 200 and maxLeverage 100 → expect revert InvalidLeverage()",
+        "params with takerFeeBps 501 → expect revert BadParams(\"takerFeeBps\")",
+        "params with makerFeeBps < -takerFeeBps → expect revert BadParams(\"makerFeeBps\")"
+      ]
+    },
+    "54": {
+      "key": "mkt.cap",
+      "module": "02. Markets & status",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "The market count is capped",
+      "priority": "Low",
+      "steps": [
+        "add markets until marketCount == MAX_MARKETS",
+        "call addMarket once more → expect revert TooManyMarkets()"
+      ]
+    },
+    "55": {
+      "key": "mkt.status.paused",
+      "module": "02. Markets & status",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "A Paused market rejects every new order, including reducing ones",
+      "priority": "High",
+      "steps": [
+        "call setMarketStatus(m, Paused, 0)",
+        "place a reducing market sell → expect revert MarketPaused(m)",
+        "call cancelOrder on a resting order → expect success"
+      ]
+    },
+    "56": {
+      "key": "mkt.status.reduceonly",
+      "module": "02. Markets & status",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "A ReduceOnly market accepts only orders that shrink a position",
+      "priority": "High",
+      "steps": [
+        "call setMarketStatus(m, ReduceOnly, 0)",
+        "place buy 1 → expect revert ReduceOnlyViolation()",
+        "place sell 3 (would flip) → expect revert ReduceOnlyViolation()",
+        "place sell 1 → expect fill; read getPosition → size 1"
+      ]
+    },
+    "57": {
+      "key": "mkt.status.settling",
+      "module": "02. Markets & status",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Settling requires a settlement price and rejects orders",
+      "priority": "High",
+      "steps": [
+        "call setMarketStatus(m, Settling, 0) → expect revert BadParams(\"settlementPrice\")",
+        "call setMarketStatus(m, Settling, 2600e8) → expect event MarketStatusChanged",
+        "place any order → expect revert MarketSettling(m)"
+      ]
+    },
+    "58": {
+      "key": "mkt.settle.position",
+      "module": "02. Markets & status",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Anyone can settle a position at the settlement price",
+      "priority": "High",
+      "steps": [
+        "call settlePosition(alice, m) from a keeper → read getPosition(alice).size → expect 0; realizedPnl +100e6",
+        "call settlePosition(bob, m) → realizedPnl -100e6",
+        "call settlePosition(alice, m) again → expect revert NoPosition()"
+      ]
+    },
+    "59": {
+      "key": "mkt.settle.notsettling",
+      "module": "02. Markets & status",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "settlePosition on an Active market reverts",
+      "priority": "Medium",
+      "steps": [
+        "call settlePosition(account, m) → expect revert MarketNotSettling(m)"
+      ]
+    },
+    "60": {
+      "key": "mkt.getter",
+      "module": "02. Markets & status",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Market getters return the configured parameters unchanged",
+      "priority": "Low",
+      "steps": [
+        "call getMarketParams(m) → compare every field with the params passed to addMarket"
+      ]
+    },
+    "61": {
+      "key": "ord.market.fill",
+      "module": "03. Order types × TIF",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "A market order fills immediately at the best available price",
+      "priority": "High",
+      "steps": [
+        "place Market buy 1 on an empty book → read getOrder(id).status → expect Filled",
+        "read getPosition.entryPrice → expect index × (1 + backstopSpread)"
+      ]
+    },
+    "62": {
+      "key": "ord.market.remainder",
+      "module": "03. Order types × TIF",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "A market order larger than available liquidity fills what it can and cancels the rest",
+      "priority": "High",
+      "steps": [
+        "place Market buy of backstopMaxSize + 50 on an empty book",
+        "read getOrder(id).filled → expect backstopMaxSize; status Cancelled",
+        "expect event OrderCancelled(reason \"unfilled\")"
+      ]
+    },
+    "63": {
+      "key": "ord.limit.rest",
+      "module": "03. Order types × TIF",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "A GTC limit that does not cross rests on the book",
+      "priority": "High",
+      "steps": [
+        "place Limit buy 1 at index × 0.96 → read getOrder(id).status → expect Open",
+        "call getOrderBook(m, 5) → expect a bid level at that price with source 0"
+      ]
+    },
+    "64": {
+      "key": "ord.limit.cross",
+      "module": "03. Order types × TIF",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "A limit that crosses fills at the resting price, not its own",
+      "priority": "High",
+      "steps": [
+        "place Limit buy at P + 20 ticks → read getPosition.entryPrice → expect P"
+      ]
+    },
+    "65": {
+      "key": "ord.limit.partial.rest",
+      "module": "03. Order types × TIF",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "A GTC limit partially filled rests for the remainder",
+      "priority": "Medium",
+      "steps": [
+        "place Limit buy 3 at P → read getOrder(id) → expect filled 1, status Open, size 3"
+      ]
+    },
+    "66": {
+      "key": "ord.ioc",
+      "module": "03. Order types × TIF",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "IOC fills what crosses and cancels the remainder",
+      "priority": "High",
+      "steps": [
+        "place Limit IOC buy 3 at P → read getOrder(id) → expect filled 1, status Cancelled",
+        "read getAccount.openOrders → expect 0"
+      ]
+    },
+    "67": {
+      "key": "ord.fok.reject",
+      "module": "03. Order types × TIF",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "FOK reverts when the full size cannot be filled, taking nothing",
+      "priority": "High",
+      "steps": [
+        "place Limit FOK buy 2 at P → expect revert FillOrKillUnfillable(1, 2)",
+        "read the resting ask → expect filled 0"
+      ]
+    },
+    "68": {
+      "key": "ord.fok.fill",
+      "module": "03. Order types × TIF",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "FOK fills completely when liquidity suffices",
+      "priority": "Medium",
+      "steps": [
+        "place Limit FOK buy 1 at P → read getOrder(id).status → expect Filled"
+      ]
+    },
+    "69": {
+      "key": "ord.fok.backstop",
+      "module": "03. Order types × TIF",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "FOK counts the backstop when the limit reaches its quote",
+      "priority": "Medium",
+      "steps": [
+        "place Limit FOK buy 50 at index × (1 + spread) + 1 tick on an empty book → expect Filled at the backstop ask"
+      ]
+    },
+    "70": {
+      "key": "ord.postonly.rest",
+      "module": "03. Order types × TIF",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "PostOnly rests when it does not cross",
+      "priority": "High",
+      "steps": [
+        "place PostOnly buy at index × 0.996 (inside the backstop spread) → expect status Open"
+      ]
+    },
+    "71": {
+      "key": "ord.postonly.cross",
+      "module": "03. Order types × TIF",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "PostOnly that would cross is rejected with the best opposite price",
+      "priority": "High",
+      "steps": [
+        "place PostOnly buy at P → expect revert PostOnlyWouldCross(P, B) — B is the better of book and backstop"
+      ]
+    },
+    "72": {
+      "key": "ord.stop.park",
+      "module": "03. Order types × TIF",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "A stop order parks as Pending and holds a slot without executing",
+      "priority": "High",
+      "steps": [
+        "place StopMarket buy trigger index + 100 → read getOrder(id).status → expect Pending",
+        "read pendingTriggerIds(m) → contains id",
+        "read getPosition.size → expect 0; getAccount.openOrders → 1"
+      ]
+    },
+    "73": {
+      "key": "ord.stop.trigger",
+      "module": "03. Order types × TIF",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "A keeper triggers a stop once the source price crosses it",
+      "priority": "High",
+      "steps": [
+        "call triggerOrder(id) with index < T → expect revert TriggerNotMet(T, index)",
+        "setMockPrice(m, T)",
+        "call triggerOrder(id) from any address → expect event OrderTriggered; status Filled; position size +1"
+      ]
+    },
+    "74": {
+      "key": "ord.stoplimit",
+      "module": "03. Order types × TIF",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "A stop-limit becomes a limit at its price after triggering",
+      "priority": "Medium",
+      "steps": [
+        "place StopLimit buy trigger T, limit T + 10 → setMockPrice(T) → triggerOrder(id)",
+        "read entryPrice → expect the backstop ask at T (below the limit), not the limit itself"
+      ]
+    },
+    "75": {
+      "key": "ord.takeprofit",
+      "module": "03. Order types × TIF",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Take-profit triggers in the opposite direction to a stop",
+      "priority": "Medium",
+      "steps": [
+        "triggerOrder(id) at index → expect revert TriggerNotMet",
+        "setMockPrice(index + 100) → triggerOrder(id) → position size 0"
+      ]
+    },
+    "76": {
+      "key": "ord.trigger.source",
+      "module": "03. Order types × TIF",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Mark and Index trigger sources are distinct",
+      "priority": "High",
+      "steps": [
+        "place two buy-stops at a trigger between index and mark: one Mark-sourced, one Index-sourced",
+        "triggerOrder(markOne) → expect success",
+        "triggerOrder(indexOne) → expect revert TriggerNotMet"
+      ]
+    },
+    "77": {
+      "key": "ord.maxts",
+      "module": "03. Order types × TIF",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "maxTs is compared to the chain clock in microseconds, and equality is not expiry",
+      "priority": "High",
+      "steps": [
+        "read clockMicros() → c",
+        "place with maxTs = c - 1 → expect revert OrderExpired(c-1, c)",
+        "place with maxTs = c → expect success"
+      ]
+    },
+    "78": {
+      "key": "book.priority",
+      "module": "04. Book & matching",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Price priority, then time priority",
+      "priority": "High",
+      "steps": [
+        "place Market buy 1.5 → expect A Filled, C filled 0.5, B filled 0"
+      ]
+    },
+    "79": {
+      "key": "book.levels",
+      "module": "04. Book & matching",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "getOrderBook aggregates same-price orders into one level",
+      "priority": "Medium",
+      "steps": [
+        "call getOrderBook(m, 5) → expect one ask level at P with size 2"
+      ]
+    },
+    "80": {
+      "key": "book.backstop.level",
+      "module": "04. Book & matching",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "The backstop appears on both sides of the book with source 1",
+      "priority": "High",
+      "steps": [
+        "call getOrderBook(m, 5) on an empty book → expect one bid at index × (1 − spread) and one ask at index × (1 + spread), both source 1, size backstopMaxSize"
+      ]
+    },
+    "81": {
+      "key": "book.backstop.best",
+      "module": "04. Book & matching",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "A better book price is taken before the backstop, and the backstop fills the rest",
+      "priority": "High",
+      "steps": [
+        "place Market buy 2 → expect entry = blended (P, backstopAsk); resting order Filled; backstop position −1"
+      ]
+    },
+    "82": {
+      "key": "book.backstop.unfunded",
+      "module": "04. Book & matching",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "An unfunded backstop does not quote",
+      "priority": "Medium",
+      "steps": [
+        "call getOrderBook(m, 5) → expect no source-1 levels",
+        "place Market buy 1 on an empty book → expect status Cancelled, filled 0"
+      ]
+    },
+    "83": {
+      "key": "book.selftrade",
+      "module": "04. Book & matching",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Self-trade is prevented",
+      "priority": "High",
+      "steps": [
+        "place own Limit buy at P → expect revert SelfTradePrevented(restingId)"
+      ]
+    },
+    "84": {
+      "key": "book.cancel",
+      "module": "04. Book & matching",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Cancel removes the order from the book and frees the slot",
+      "priority": "High",
+      "steps": [
+        "place resting limit → cancelOrder(id) → expect event OrderCancelled(reason \"user\")",
+        "read getOrder(id).status → Cancelled; getAccount.openOrders → 0; getOrderBook → level gone"
+      ]
+    },
+    "85": {
+      "key": "book.cancel.owner",
+      "module": "04. Book & matching",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Only the owner can cancel",
+      "priority": "High",
+      "steps": [
+        "cancelOrder(id) from another account → expect revert NotOrderOwner()"
+      ]
+    },
+    "86": {
+      "key": "book.cancelall",
+      "module": "04. Book & matching",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "cancelAll is scoped by market, or all markets with the sentinel",
+      "priority": "Medium",
+      "steps": [
+        "cancelAll(ETH) → expect return 2; openOrders 1",
+        "cancelAll(0xFFFF) → expect return 1; openOrders 0"
+      ]
+    },
+    "87": {
+      "key": "pos.blend",
+      "module": "05. Positions",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Adding to a position blends the entry by volume",
+      "priority": "High",
+      "steps": [
+        "buy 1 at 2500, buy 1 at 2501 → read getPosition → size 2, entryPrice 2500.50"
+      ]
+    },
+    "88": {
+      "key": "pos.reduce",
+      "module": "05. Positions",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Reducing realises PnL at the fill price and leaves the entry unchanged",
+      "priority": "High",
+      "steps": [
+        "long 2 at 2500; sell 1 at 2502 → read getPosition → size 1, entryPrice 2500, realizedPnl +2e6",
+        "read balance delta → +2e6 − taker fee"
+      ]
+    },
+    "89": {
+      "key": "pos.flip",
+      "module": "05. Positions",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "A fill larger than the position flips it, closing at the old entry and opening at the fill",
+      "priority": "High",
+      "steps": [
+        "long 1 at 2500; sell 3 at 2498 → read getPosition → size −2, entryPrice 2498, realizedPnl −2e6"
+      ]
+    },
+    "90": {
+      "key": "pos.flat",
+      "module": "05. Positions",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Closing to flat clears the entry and removes the holder",
+      "priority": "Medium",
+      "steps": [
+        "long 1; sell 1 → read getPosition → size 0, entryPrice 0",
+        "read holdersOf(m) → does not contain the account"
+      ]
+    },
+    "91": {
+      "key": "pos.upnl",
+      "module": "05. Positions",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Unrealised PnL in equity follows the mark, not the index",
+      "priority": "High",
+      "steps": [
+        "long 1 at 2500 (mark 2500); setMockPrice(2600) → mark clamps to 2574",
+        "read equity delta → expect +74e6, not +100e6"
+      ]
+    },
+    "92": {
+      "key": "pos.oi",
+      "module": "05. Positions",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Open interest is tracked on both sides and always equal",
+      "priority": "High",
+      "steps": [
+        "after any fills read getMarket(m).openInterestLong and openInterestShort → expect equal",
+        "after a reduce → both decreased by the closed size"
+      ]
+    },
+    "93": {
+      "key": "pos.estliq",
+      "module": "05. Positions",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Estimated liquidation price sits below entry for a long and above for a short",
+      "priority": "Low",
+      "steps": [
+        "long 1 with thin collateral → read estimatedLiquidationPrice → expect 0 < value < entry",
+        "short 1 → expect value > entry"
+      ]
+    },
+    "94": {
+      "key": "px.mark.initial",
+      "module": "06. Price",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Mark equals index until the first fill",
+      "priority": "High",
+      "steps": [
+        "on a fresh market read getMarkPrice(m) → expect == getIndexPrice(m)"
+      ]
+    },
+    "95": {
+      "key": "px.mark.clamp",
+      "module": "06. Price",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Mark is the last fill clamped to index ± maxBasis",
+      "priority": "High",
+      "steps": [
+        "fill at index × 1.008 → read getMarkPrice → expect index × 1.008",
+        "setMockPrice(index × 0.96) → read getMarkPrice → expect newIndex × 1.01 (the clamp)"
+      ]
+    },
+    "96": {
+      "key": "px.band",
+      "module": "06. Price",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Limit prices outside index ± band are refused on both sides, and the edge is accepted",
+      "priority": "High",
+      "steps": [
+        "place Limit buy at lower − 1 tick → expect revert PriceOutOfBand(p, lower, upper)",
+        "place Limit sell at upper + 1 tick → expect revert",
+        "place Limit buy at exactly lower → expect success"
+      ]
+    },
+    "97": {
+      "key": "px.mock.permissionless",
+      "module": "06. Price",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Anyone can set the mock index until the market is locked",
+      "priority": "High",
+      "steps": [
+        "setMockPrice(m, p) from a non-admin → read getIndexPrice → expect p"
+      ]
+    },
+    "98": {
+      "key": "px.mock.lock",
+      "module": "06. Price",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Locking the mock is admin-only and one-way; the admin feed still works",
+      "priority": "High",
+      "steps": [
+        "lockMock(m) from non-admin → expect revert NotAdmin",
+        "lockMock(m) from admin → setMockPrice from anyone → expect revert MockIsLocked(m)",
+        "setPrice(m, p) from admin → expect getIndexPrice == p",
+        "expect no unlock function in the ABI"
+      ]
+    },
+    "99": {
+      "key": "px.stale",
+      "module": "06. Price",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "A reading older than maxAge reverts OracleStale; exactly maxAge is fresh",
+      "priority": "High",
+      "steps": [
+        "setMockReading(m, p, now − maxAge − 1) → getIndexPrice → expect revert OracleStale(m, t, maxAge); peek → isStale true",
+        "setMockReading(m, p, now − maxAge) → getIndexPrice → expect p"
+      ]
+    },
+    "100": {
+      "key": "fund.permissionless",
+      "module": "07. Funding",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "updateFunding is permissionless and a no-op inside the interval",
+      "priority": "High",
+      "steps": [
+        "call updateFunding(m) from a stranger inside the interval → expect return false; getFundingRate → rate 0, index 0"
+      ]
+    },
+    "101": {
+      "key": "fund.boundary",
+      "module": "07. Funding",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "lastFundingTime always lands on an interval boundary",
+      "priority": "High",
+      "steps": [
+        "warp to boundary + 1234 s → updateFunding → read getFundingRate.lastFundingTime → expect % interval == 0 and == now − now % interval"
+      ]
+    },
+    "102": {
+      "key": "fund.direction",
+      "module": "07. Funding",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "A positive premium makes longs pay and shorts receive",
+      "priority": "High",
+      "steps": [
+        "warp one interval → updateFunding → read rate → expect > 0",
+        "touch both positions → long balance delta < 0, short balance delta > 0 (net of fees)"
+      ]
+    },
+    "103": {
+      "key": "fund.cap",
+      "module": "07. Funding",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "The rate is clamped to ± fundingRateCapBps",
+      "priority": "High",
+      "steps": [
+        "rateBps(500, 1, 75) → 75; rateBps(−500, 1, 75) → −75; rateBps(30, 1, 75) → 30"
+      ]
+    },
+    "104": {
+      "key": "fund.average",
+      "module": "07. Funding",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "The rate is the average of premium samples",
+      "priority": "Medium",
+      "steps": [
+        "samples +10, +20, +30 → rateBps → 20",
+        "premiumBps(2525, 2500) → 100; premiumBps(2475, 2500) → −100"
+      ]
+    },
+    "105": {
+      "key": "fund.equity",
+      "module": "07. Funding",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Funding owed reduces equity before it is settled",
+      "priority": "High",
+      "steps": [
+        "long with premium → warp → updateFunding → read equity → expect lower than before, with no fill on the account"
+      ]
+    },
+    "106": {
+      "key": "liq.above",
+      "module": "08. Liquidation",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "An account above maintenance cannot be liquidated",
+      "priority": "High",
+      "steps": [
+        "isLiquidatable(a) → false",
+        "liquidate(a, m) → expect revert NotLiquidatable(a)"
+      ]
+    },
+    "107": {
+      "key": "liq.exact",
+      "module": "08. Liquidation",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "The threshold is exact: no buffer on either side",
+      "priority": "High",
+      "steps": [
+        "walk the index down $0.10 at a time; at each step: if !isLiquidatable → liquidate reverts NotLiquidatable; at the first true → equity < maintenance and liquidate succeeds"
+      ]
+    },
+    "108": {
+      "key": "liq.partial",
+      "module": "08. Liquidation",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Liquidation closes partialLiquidationBps of the position and pays the liquidator",
+      "priority": "High",
+      "steps": [
+        "liquidate(a, m) → read getPosition.size → expect half",
+        "read liquidator balance delta → expect liquidationFeeBps × closed notional",
+        "read getAccount(a) → liquidationCount 1, lastLiquidatedAt == now"
+      ]
+    },
+    "109": {
+      "key": "liq.dust",
+      "module": "08. Liquidation",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "A remainder below minNotional is closed in full",
+      "priority": "Medium",
+      "steps": [
+        "position whose half would be < minNotional → liquidate → read size → expect 0"
+      ]
+    },
+    "110": {
+      "key": "liq.insurance",
+      "module": "08. Liquidation",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Bad debt is covered by the insurance fund",
+      "priority": "High",
+      "steps": [
+        "crash the index far past the collateral → liquidate → read vault.balanceOf(a) → expect ≥ 0; insurance balance decreased by the deficit",
+        "expect event Liquidated with badDebt > 0 and insuranceUsed == badDebt"
+      ]
+    },
+    "111": {
+      "key": "liq.fullclose",
+      "module": "08. Liquidation",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Once the balance is negative the rest of the position is closed in the same call",
+      "priority": "High",
+      "steps": [
+        "crash deep → single liquidate → read getPosition.size → expect 0; liquidationCount 1"
+      ]
+    },
+    "112": {
+      "key": "liq.paused",
+      "module": "08. Liquidation",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "A paused exchange blocks liquidation",
+      "priority": "Medium",
+      "steps": [
+        "setPaused(true) → liquidate → expect revert ExchangePaused()"
+      ]
+    },
+    "113": {
+      "key": "liq.flag",
+      "module": "08. Liquidation",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "The liquidation flag is visible through a getter",
+      "priority": "High",
+      "steps": [
+        "read getAccount(a).liquidationCount before → 0; after a liquidation → 1; lastLiquidatedAt == that block"
+      ]
+    },
+    "114": {
+      "key": "adl.trigger",
+      "module": "09. Auto-deleveraging",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "ADL fires only when the insurance fund cannot cover the deficit",
+      "priority": "High",
+      "steps": [
+        "liquidate(bankrupt) → expect event AutoDeleveraged(short holder); short position 0; bankrupt balance ≥ 0"
+      ]
+    },
+    "115": {
+      "key": "adl.notrigger",
+      "module": "09. Auto-deleveraging",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "ADL does not fire while the fund can pay",
+      "priority": "High",
+      "steps": [
+        "liquidate(bankrupt) → expect no AutoDeleveraged event; short holder position unchanged"
+      ]
+    },
+    "116": {
+      "key": "adl.rank",
+      "module": "09. Auto-deleveraging",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "ADL picks the most profitable, largest opposite position first",
+      "priority": "Medium",
+      "steps": [
+        "liquidate(bankrupt) with a deficit the large short covers alone → expect only the large short closed"
+      ]
+    },
+    "117": {
+      "key": "fee.taker",
+      "module": "10. Fees",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "The taker pays takerFeeBps of notional",
+      "priority": "High",
+      "steps": [
+        "taker fills 2501 notional at 5 bps → balance delta −1.2505e6 (plus pnl if any)"
+      ]
+    },
+    "118": {
+      "key": "fee.rebate",
+      "module": "10. Fees",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "A negative maker fee is a rebate credited to the maker",
+      "priority": "High",
+      "steps": [
+        "maker with −2 bps on 2501 notional → balance delta +0.5002e6"
+      ]
+    },
+    "119": {
+      "key": "fee.split",
+      "module": "10. Fees",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Net fee is split between treasury and insurance by feeToInsuranceBps",
+      "priority": "High",
+      "steps": [
+        "taker 1.25, rebate 0.50 → net 0.75 at 50 % → treasury +0.375e6, insurance +0.375e6"
+      ]
+    },
+    "120": {
+      "key": "fee.set",
+      "module": "10. Fees",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "setFees applies to the next fill",
+      "priority": "Medium",
+      "steps": [
+        "setFees(m, 0, 10) → market buy 1 → balance delta −10 bps of notional"
+      ]
+    },
+    "121": {
+      "key": "adm.strangers",
+      "module": "11. Admin",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Every admin function rejects a non-admin",
+      "priority": "High",
+      "steps": [
+        "from a stranger call setPaused, setMarketStatus, setFees, transferAdmin, addMarket, setMarketParams → each expect revert NotAdmin()"
+      ]
+    },
+    "122": {
+      "key": "adm.transfer",
+      "module": "11. Admin",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Admin handover is two-step and only the pending admin can accept",
+      "priority": "High",
+      "steps": [
+        "transferAdmin(new) → read admin → unchanged; pendingAdmin → new",
+        "acceptAdmin from a stranger → expect revert PendingAdminMismatch()",
+        "acceptAdmin from new → admin == new; pendingAdmin == 0",
+        "old admin calls setPaused → expect revert NotAdmin"
+      ]
+    },
+    "123": {
+      "key": "adm.accept.none",
+      "module": "11. Admin",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "acceptAdmin with nothing pending reverts",
+      "priority": "High",
+      "steps": [
+        "acceptAdmin from any address with pendingAdmin == 0 → expect revert PendingAdminMismatch()"
+      ]
+    },
+    "124": {
+      "key": "adm.pause",
+      "module": "11. Admin",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Pause blocks orders and triggers but not cancels or withdrawals",
+      "priority": "High",
+      "steps": [
+        "setPaused(true) → placeOrder → revert ExchangePaused; triggerOrder → revert ExchangePaused",
+        "cancelOrder → success; withdraw → success",
+        "setPaused(false) → placeOrder → success"
+      ]
+    },
+    "125": {
+      "key": "adm.pause.order",
+      "module": "11. Admin",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "ExchangePaused is checked before AccountNotFound",
+      "priority": "High",
+      "steps": [
+        "setPaused(true) → placeOrder from an address with no account → expect revert ExchangePaused, not AccountNotFound"
+      ]
+    },
+    "126": {
+      "key": "adm.status.order",
+      "module": "11. Admin",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "AccountNotFound is checked before MarketPaused",
+      "priority": "High",
+      "steps": [
+        "setMarketStatus(m, Paused) → placeOrder from an address with no account → expect revert AccountNotFound, not MarketPaused"
+      ]
+    },
+    "127": {
+      "key": "adm.params.set",
+      "module": "11. Admin",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "setMarketParams replaces the parameter set and is validated like addMarket",
+      "priority": "Medium",
+      "steps": [
+        "setMarketParams(m, valid) → getMarketParams == valid; event MarketParamsSet",
+        "setMarketParams(m, invalid) → revert BadParams"
+      ]
+    },
+    "128": {
+      "key": "ev.placed",
+      "module": "12. Events",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "OrderPlaced carries every order parameter",
+      "priority": "High",
+      "steps": [
+        "placeOrder → decode OrderPlaced → expect orderId, owner, marketId (indexed), side, type, tif, size, price, triggerPrice, reduceOnly, userOrderId, maxTs all equal to the params"
+      ]
+    },
+    "129": {
+      "key": "ev.filled",
+      "module": "12. Events",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "OrderFilled names the maker, and zero for the backstop",
+      "priority": "High",
+      "steps": [
+        "market buy 2 with 1 resting from bob → expect two OrderFilled: maker bob then maker 0x0; makerOrderId set then 0"
+      ]
+    },
+    "130": {
+      "key": "ev.cancelled",
+      "module": "12. Events",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "OrderCancelled carries the unfilled size and a reason",
+      "priority": "Medium",
+      "steps": [
+        "cancel a half-filled order → expect unfilled == size − filled, reason \"user\"",
+        "IOC remainder → reason \"ioc\"; market remainder → \"unfilled\""
+      ]
+    },
+    "131": {
+      "key": "ev.position",
+      "module": "12. Events",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "PositionChanged reports before/after size, entry, realised delta and funding paid",
+      "priority": "High",
+      "steps": [
+        "fill → expect PositionChanged for taker and maker with sizeBefore/sizeAfter consistent with getPosition"
+      ]
+    },
+    "132": {
+      "key": "ev.funding",
+      "module": "12. Events",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "FundingUpdated reports rate, cumulative index, boundary time and sample count",
+      "priority": "Medium",
+      "steps": [
+        "updateFunding across a boundary → expect FundingUpdated(m, rate, index, boundaryTime, samples ≥ 1)"
+      ]
+    },
+    "133": {
+      "key": "ev.liquidated",
+      "module": "12. Events",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "Liquidated reports size, price, fee, bad debt and insurance used",
+      "priority": "High",
+      "steps": [
+        "liquidate → expect Liquidated(account, m, liquidator, sizeClosed, mark, fee, badDebt, insuranceUsed) with insuranceUsed ≤ badDebt"
+      ]
+    },
+    "134": {
+      "key": "pm.BTC.step",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "BTC: size off the step is refused (step 0.0001)",
+      "priority": "High",
+      "steps": [
+        "place size = step + 1 unit on market 0 → expect revert InvalidStep(size, step)"
+      ]
+    },
+    "135": {
+      "key": "pm.BTC.tick",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "BTC: price off the tick is refused (tick 0.01)",
+      "priority": "High",
+      "steps": [
+        "place Limit at price = tick multiple + 1 unit on market 0 → expect revert InvalidTick(price, tick)"
+      ]
+    },
+    "136": {
+      "key": "pm.BTC.band",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "BTC: the price band is index ± 5 % around 60000",
+      "priority": "High",
+      "steps": [
+        "compute lower/upper from getIndexPrice(0) → place at lower − tick → revert PriceOutOfBand(p, lower, upper); place at lower → success"
+      ]
+    },
+    "137": {
+      "key": "pm.BTC.minnotional",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "BTC: notional below $10 is refused",
+      "priority": "Medium",
+      "steps": [
+        "place the smallest step size whose notional < 10 → expect revert BelowMinNotional(n, min)"
+      ]
+    },
+    "138": {
+      "key": "pm.BTC.margin",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "BTC: initial margin is 2 % of notional",
+      "priority": "High",
+      "steps": [
+        "fund exactly IM − 1 unit; place 1 unit at index → expect revert InsufficientCollateral(free, required) with required == notional × IM"
+      ]
+    },
+    "139": {
+      "key": "pm.BTC.liq.low",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "BTC: liquidation at 2x leverage happens far from entry",
+      "priority": "High",
+      "steps": [
+        "open 1 unit with collateral = 50 % of notional; walk the index down; record the first liquidatable index → expect drop ≈ (50 % − MM) of entry"
+      ]
+    },
+    "140": {
+      "key": "pm.BTC.liq.mid",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "BTC: liquidation at 10x leverage",
+      "priority": "High",
+      "steps": [
+        "open 1 unit with collateral = 10 % of notional; walk the index down; first liquidatable index → expect drop ≈ (10 % − MM) of entry"
+      ]
+    },
+    "141": {
+      "key": "pm.BTC.liq.max",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "BTC: liquidation at max leverage (50x)",
+      "priority": "High",
+      "steps": [
+        "open 1 unit with collateral = IM exactly; walk the index down → expect liquidatable within (IM − MM) of entry"
+      ]
+    },
+    "142": {
+      "key": "pm.BTC.fund.pos",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "BTC: positive premium → positive rate, longs pay",
+      "priority": "Medium",
+      "steps": [
+        "fill above index on market 0; warp one interval; updateFunding → rate > 0; long balance decreases on next touch"
+      ]
+    },
+    "143": {
+      "key": "pm.BTC.fund.neg",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "BTC: negative premium → negative rate, shorts pay",
+      "priority": "Medium",
+      "steps": [
+        "fill below index on market 0; warp one interval; updateFunding → rate < 0; short balance decreases on next touch"
+      ]
+    },
+    "144": {
+      "key": "pm.ETH.step",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "ETH: size off the step is refused (step 0.001)",
+      "priority": "High",
+      "steps": [
+        "place size = step + 1 unit on market 1 → expect revert InvalidStep(size, step)"
+      ]
+    },
+    "145": {
+      "key": "pm.ETH.tick",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "ETH: price off the tick is refused (tick 0.01)",
+      "priority": "High",
+      "steps": [
+        "place Limit at price = tick multiple + 1 unit on market 1 → expect revert InvalidTick(price, tick)"
+      ]
+    },
+    "146": {
+      "key": "pm.ETH.band",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "ETH: the price band is index ± 5 % around 2500",
+      "priority": "High",
+      "steps": [
+        "compute lower/upper from getIndexPrice(1) → place at lower − tick → revert PriceOutOfBand(p, lower, upper); place at lower → success"
+      ]
+    },
+    "147": {
+      "key": "pm.ETH.minnotional",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "ETH: notional below $10 is refused",
+      "priority": "Medium",
+      "steps": [
+        "place the smallest step size whose notional < 10 → expect revert BelowMinNotional(n, min)"
+      ]
+    },
+    "148": {
+      "key": "pm.ETH.margin",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "ETH: initial margin is 2 % of notional",
+      "priority": "High",
+      "steps": [
+        "fund exactly IM − 1 unit; place 1 unit at index → expect revert InsufficientCollateral(free, required) with required == notional × IM"
+      ]
+    },
+    "149": {
+      "key": "pm.ETH.liq.low",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "ETH: liquidation at 2x leverage happens far from entry",
+      "priority": "High",
+      "steps": [
+        "open 1 unit with collateral = 50 % of notional; walk the index down; record the first liquidatable index → expect drop ≈ (50 % − MM) of entry"
+      ]
+    },
+    "150": {
+      "key": "pm.ETH.liq.mid",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "ETH: liquidation at 10x leverage",
+      "priority": "High",
+      "steps": [
+        "open 1 unit with collateral = 10 % of notional; walk the index down; first liquidatable index → expect drop ≈ (10 % − MM) of entry"
+      ]
+    },
+    "151": {
+      "key": "pm.ETH.liq.max",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "ETH: liquidation at max leverage (50x)",
+      "priority": "High",
+      "steps": [
+        "open 1 unit with collateral = IM exactly; walk the index down → expect liquidatable within (IM − MM) of entry"
+      ]
+    },
+    "152": {
+      "key": "pm.ETH.fund.pos",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "ETH: positive premium → positive rate, longs pay",
+      "priority": "Medium",
+      "steps": [
+        "fill above index on market 1; warp one interval; updateFunding → rate > 0; long balance decreases on next touch"
+      ]
+    },
+    "153": {
+      "key": "pm.ETH.fund.neg",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "ETH: negative premium → negative rate, shorts pay",
+      "priority": "Medium",
+      "steps": [
+        "fill below index on market 1; warp one interval; updateFunding → rate < 0; short balance decreases on next touch"
+      ]
+    },
+    "154": {
+      "key": "pm.SOL.step",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "SOL: size off the step is refused (step 0.01)",
+      "priority": "High",
+      "steps": [
+        "place size = step + 1 unit on market 2 → expect revert InvalidStep(size, step)"
+      ]
+    },
+    "155": {
+      "key": "pm.SOL.tick",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "SOL: price off the tick is refused (tick 0.001)",
+      "priority": "High",
+      "steps": [
+        "place Limit at price = tick multiple + 1 unit on market 2 → expect revert InvalidTick(price, tick)"
+      ]
+    },
+    "156": {
+      "key": "pm.SOL.band",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "SOL: the price band is index ± 5 % around 100",
+      "priority": "High",
+      "steps": [
+        "compute lower/upper from getIndexPrice(2) → place at lower − tick → revert PriceOutOfBand(p, lower, upper); place at lower → success"
+      ]
+    },
+    "157": {
+      "key": "pm.SOL.minnotional",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "SOL: notional below $10 is refused",
+      "priority": "Medium",
+      "steps": [
+        "place the smallest step size whose notional < 10 → expect revert BelowMinNotional(n, min)"
+      ]
+    },
+    "158": {
+      "key": "pm.SOL.margin",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "SOL: initial margin is 5 % of notional",
+      "priority": "High",
+      "steps": [
+        "fund exactly IM − 1 unit; place 1 unit at index → expect revert InsufficientCollateral(free, required) with required == notional × IM"
+      ]
+    },
+    "159": {
+      "key": "pm.SOL.liq.low",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "SOL: liquidation at 2x leverage happens far from entry",
+      "priority": "High",
+      "steps": [
+        "open 1 unit with collateral = 50 % of notional; walk the index down; record the first liquidatable index → expect drop ≈ (50 % − MM) of entry"
+      ]
+    },
+    "160": {
+      "key": "pm.SOL.liq.mid",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "SOL: liquidation at 10x leverage",
+      "priority": "High",
+      "steps": [
+        "open 1 unit with collateral = 10 % of notional; walk the index down; first liquidatable index → expect drop ≈ (10 % − MM) of entry"
+      ]
+    },
+    "161": {
+      "key": "pm.SOL.liq.max",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "SOL: liquidation at max leverage (20x)",
+      "priority": "High",
+      "steps": [
+        "open 1 unit with collateral = IM exactly; walk the index down → expect liquidatable within (IM − MM) of entry"
+      ]
+    },
+    "162": {
+      "key": "pm.SOL.fund.pos",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "SOL: positive premium → positive rate, longs pay",
+      "priority": "Medium",
+      "steps": [
+        "fill above index on market 2; warp one interval; updateFunding → rate > 0; long balance decreases on next touch"
+      ]
+    },
+    "163": {
+      "key": "pm.SOL.fund.neg",
+      "module": "13. Per-market",
+      "layer": "BE/Contract",
+      "tier": "contract-perpdex",
+      "title": "SOL: negative premium → negative rate, shorts pay",
+      "priority": "Medium",
+      "steps": [
+        "fill below index on market 2; warp one interval; updateFunding → rate < 0; short balance decreases on next touch"
+      ]
+    },
+    "164": {
+      "key": "db.schema",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "The store has the documented tables, and every event table is keyed by (tx_hash, log_index)",
+      "priority": "High",
+      "steps": [
+        "open the store read-only; read sqlite_master → expect tables indexer_state, markets, orders, trades, positions, position_events, funding, liquidations, accounts, index_prices, applied_logs, api_keys",
+        "read PRAGMA index_list for trades, funding, liquidations, position_events, applied_logs → expect a unique index over (tx_hash, log_index)"
+      ]
+    },
+    "165": {
+      "key": "db.constraints",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "Schema constraints refuse a zero-size trade, an unknown market, and a bad status",
+      "priority": "High",
+      "steps": [
+        "insert a trades row with size \"0\" → expect a CHECK failure",
+        "insert an orders row with market_id 99 → expect a FOREIGN KEY failure",
+        "insert a markets row with status \"Weird\" → expect a CHECK failure",
+        "insert the same trades (tx_hash, log_index) twice → expect the second to fail"
+      ]
+    },
+    "166": {
+      "key": "db.state.follows",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "The store follows exactly the deployed exchange on chain 31337",
+      "priority": "High",
+      "steps": [
+        "read indexer_state → expect exchange == deployments/31337.json exchange (case-insensitive), chain_id 31337, genesis_hash == eth_getBlockByNumber(0).hash"
+      ]
+    },
+    "167": {
+      "key": "db.state.lag",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "The indexer keeps up: last_block reaches the chain head within the poll interval",
+      "priority": "High",
+      "steps": [
+        "mine a block; wait up to 5 s → read indexer_state.last_block → expect == eth_blockNumber",
+        "read last_block_hash → expect == the hash of that block"
+      ]
+    },
+    "168": {
+      "key": "db.markets.seeded",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "Market rows equal the contract getters",
+      "priority": "High",
+      "steps": [
+        "read markets → expect COUNT == marketCount()",
+        "for each row: symbol, status, tick_size, step_size, min_notional, max_leverage, maker/taker fee, max_basis_bps == getMarket / getMarketParams"
+      ]
+    },
+    "169": {
+      "key": "db.index.price",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "The stored index price follows the oracle",
+      "priority": "High",
+      "steps": [
+        "setMockPrice(ETH, 2600); wait for the block to be indexed → read index_prices where market_id = 1 → expect price 2600e8 and publish_time == the reading's"
+      ]
+    },
+    "170": {
+      "key": "db.trade.row",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "One OrderFilled becomes exactly one trades row, keyed by its tx and log index",
+      "priority": "High",
+      "steps": [
+        "bob rests an ask; alice buys at market; read the receipt's OrderFilled (tx_hash, logIndex, size, price)",
+        "wait indexed → read trades where tx_hash and log_index match → expect exactly one row with size, price, taker, maker, taker_order_id, taker_fee equal to the event"
+      ]
+    },
+    "171": {
+      "key": "db.trade.backstop",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "A backstop fill is stored with the zero address as maker and maker_order_id 0",
+      "priority": "High",
+      "steps": [
+        "alice buys at market on an empty book → wait indexed → read the trade → expect maker == 0x000…000 and maker_order_id == 0"
+      ]
+    },
+    "172": {
+      "key": "db.trade.fk",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "Every trade references an order the store knows",
+      "priority": "High",
+      "steps": [
+        "after several fills → SELECT trades t LEFT JOIN orders o ON o.order_id = t.taker_order_id WHERE o.order_id IS NULL → expect 0 rows",
+        "same for maker_order_id <> 0"
+      ]
+    },
+    "173": {
+      "key": "db.order.placed",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "An OrderPlaced becomes an orders row equal to getOrder",
+      "priority": "High",
+      "steps": [
+        "alice rests a limit with userOrderId 77 → wait indexed → read orders where order_id → expect owner, market_id, side, order_type, tif, size, price, reduce_only, user_order_id, max_ts, status Open equal to getOrder"
+      ]
+    },
+    "174": {
+      "key": "db.order.filled",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "After a full fill the row shows filled == size and status Filled, like the chain",
+      "priority": "High",
+      "steps": [
+        "bob rests 1 ETH; alice buys 1 ETH at market → wait indexed → read bob's order row → expect filled == size and status Filled; getOrder(bob).status == Filled"
+      ]
+    },
+    "175": {
+      "key": "db.order.cancelled",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "A cancel is reflected as status Cancelled",
+      "priority": "Medium",
+      "steps": [
+        "alice rests then cancels → wait indexed → read the row → expect status Cancelled"
+      ]
+    },
+    "176": {
+      "key": "db.position.matches",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "The positions row equals getPosition for size and entry price",
+      "priority": "High",
+      "steps": [
+        "alice buys 2 ETH then sells 0.5 → wait indexed → read positions (alice, 1) → expect size 1.5e8 and entry_price == getPosition.entryPrice"
+      ]
+    },
+    "177": {
+      "key": "db.position.realized",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "Lifetime realised PnL in the store equals the contract's",
+      "priority": "Medium",
+      "steps": [
+        "open, then partially close at a profit → wait indexed → read positions.realized_pnl → expect == getPosition.realizedPnl"
+      ]
+    },
+    "178": {
+      "key": "db.position.sum",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "Per market, long sizes equal short sizes, and both equal the contract's open interest",
+      "priority": "High",
+      "steps": [
+        "after fills on each market → SELECT SUM(size>0), SUM(-size where size<0) per market → expect equal, and each == getMarket().openInterestLong/Short"
+      ]
+    },
+    "179": {
+      "key": "db.position_events.pair",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "One fill writes two position_events rows: taker and maker (backstop included)",
+      "priority": "Medium",
+      "steps": [
+        "alice buys at market against the backstop → wait indexed → read position_events for that tx → expect 2 rows: alice and the backstop address, with sizeAfter of opposite sign"
+      ]
+    },
+    "180": {
+      "key": "db.funding.row",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "A FundingUpdated across a boundary becomes a funding row equal to getFundingRate",
+      "priority": "Medium",
+      "steps": [
+        "advance the clock one interval; updateFunding → wait indexed → read funding newest for market 1 → expect rate_bps == lastRateBps, cumulative_index == cumulativeIndex, funding_time == lastFundingTime"
+      ]
+    },
+    "181": {
+      "key": "db.liquidation.row",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "A liquidation becomes a liquidations row equal to the Liquidated event",
+      "priority": "High",
+      "steps": [
+        "thin long; crash the index; keeper liquidates → wait indexed → read the row by tx → expect account, liquidator, size_closed, price, liquidator_fee, bad_debt, insurance_used == the event"
+      ]
+    },
+    "182": {
+      "key": "db.accounts.flow",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "Deposits and withdrawals accumulate on the accounts row",
+      "priority": "Low",
+      "steps": [
+        "fund alice $1000; withdraw $250 → wait indexed → read accounts(alice) → expect deposits 1000e6, withdrawals 250e6"
+      ]
+    },
+    "183": {
+      "key": "db.replay.idempotent",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "Replaying an already-indexed range changes nothing",
+      "priority": "High",
+      "steps": [
+        "note COUNT(*) of trades, orders, position_events, positions.size for alice",
+        "POST /admin/indexer {rewind: last_block - 10} → wait for last_block to return to head",
+        "read the same counts and values → expect identical"
+      ]
+    },
+    "184": {
+      "key": "db.pause.freeze",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "A paused indexer freezes the store while the chain moves on",
+      "priority": "High",
+      "steps": [
+        "POST /admin/indexer {paused:true}; alice buys at market; wait 2 s → read indexer_state.last_block → expect unchanged and < eth_blockNumber; trades count unchanged",
+        "unpause; wait → expect last_block == head and the trade present"
+      ]
+    },
+    "185": {
+      "key": "db.reorg.rebuild",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "After the chain reverts, the store rebuilds and matches the chain again",
+      "priority": "High",
+      "steps": [
+        "snapshot; alice buys at market; wait indexed → trades count n+1",
+        "evm_revert to the snapshot; wait → expect indexer_state.rebuilds +1, last_block == head, trades count back to n, positions(alice) == getPosition (flat)"
+      ]
+    },
+    "186": {
+      "key": "db.second_exchange",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "Events from a second PerpDEX at another address are invisible to the store",
+      "priority": "High",
+      "steps": [
+        "deploy a second PerpExchange with the same vault/oracle; grace initialises an account on it → wait indexed → read accounts(grace) → expect no row; indexer_state.exchange unchanged"
+      ]
+    },
+    "187": {
+      "key": "db.mark.ETH",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "ETH: mark derived from store rows equals getMarkPrice",
+      "priority": "High",
+      "steps": [
+        "fill above index so the mark is off the index → wait indexed → compute clamp(trades.last.price, index_prices ± markets.max_basis_bps) → expect == getMarkPrice(1)"
+      ]
+    },
+    "188": {
+      "key": "db.mark.BTC",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "BTC: mark derived from store rows equals getMarkPrice",
+      "priority": "Medium",
+      "steps": [
+        "as ETH, on market 0"
+      ]
+    },
+    "189": {
+      "key": "db.mark.SOL",
+      "module": "05. DB — indexer store",
+      "layer": "BE/DB",
+      "tier": "db",
+      "title": "SOL: mark derived from store rows equals getMarkPrice",
+      "priority": "Medium",
+      "steps": [
+        "as ETH, on market 2"
+      ]
+    },
+    "190": {
+      "key": "api.health",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "/health reports the store's indexer state",
+      "priority": "High",
+      "steps": [
+        "GET /health → expect 200, ok true, exchange == indexer_state.exchange, last_block == indexer_state.last_block, indexer_paused false, age_seconds small"
+      ]
+    },
+    "191": {
+      "key": "api.markets.list",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "/markets returns one entry per markets row with the row's fields",
+      "priority": "High",
+      "steps": [
+        "GET /markets → expect markets.length == COUNT(markets); for each: symbol, status, tick_size, step_size, min_notional, max_leverage, fees, max_basis_bps == row; index_price == index_prices row"
+      ]
+    },
+    "192": {
+      "key": "api.markets.one",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "/markets/1 returns the ETH row",
+      "priority": "Medium",
+      "steps": [
+        "GET /markets/1 → expect 200 and the same object as the list entry"
+      ]
+    },
+    "193": {
+      "key": "api.markets.mark",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "mark_price in /markets equals the mark derived from the rows",
+      "priority": "High",
+      "steps": [
+        "after a fill → GET /markets/1 mark_price → expect == clamp(last trade, index ± max_basis) computed from the rows"
+      ]
+    },
+    "194": {
+      "key": "api.markets.oi",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "open_interest_long/short in /markets equal the positions sums",
+      "priority": "Medium",
+      "steps": [
+        "GET /markets/1 → expect open_interest_long == SUM(positive sizes), short == SUM(negative)"
+      ]
+    },
+    "195": {
+      "key": "api.markets.404",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "An unknown market is 404 with the standard error shape",
+      "priority": "Medium",
+      "steps": [
+        "GET /markets/99 → expect 404, body {error, code: \"not_found\"}",
+        "GET /markets/abc → expect 404, same shape"
+      ]
+    },
+    "196": {
+      "key": "api.markets.status",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "/markets/:id/status follows a status change",
+      "priority": "Medium",
+      "steps": [
+        "admin sets ETH Paused → wait indexed → GET /markets/1/status → expect status Paused == markets row",
+        "set Active back → expect Active"
+      ]
+    },
+    "197": {
+      "key": "api.orderbook.levels",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "/orderbook aggregates the store's open orders per price",
+      "priority": "High",
+      "steps": [
+        "rest three bids at two prices → wait indexed → GET /orderbook/1 → expect bids sorted descending, each size == SUM over open orders at that price, orders count right"
+      ]
+    },
+    "198": {
+      "key": "api.orderbook.depth",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "depth is validated",
+      "priority": "Low",
+      "steps": [
+        "?depth=0 → 400; ?depth=51 → 400; ?depth=x → 400"
+      ]
+    },
+    "199": {
+      "key": "api.orders.open",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "/orders/:account returns the account's Open rows by default",
+      "priority": "High",
+      "steps": [
+        "alice rests two limits, one cancelled → wait indexed → GET /orders/alice → expect exactly the rows with status Open"
+      ]
+    },
+    "200": {
+      "key": "api.orders.filter",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "?status=Cancelled and ?status=all select the right rows",
+      "priority": "Medium",
+      "steps": [
+        "GET /orders/alice?status=Cancelled → expect the cancelled rows only; ?status=all → expect COUNT(orders where owner)"
+      ]
+    },
+    "201": {
+      "key": "api.orders.badaddr",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "A malformed account is 400",
+      "priority": "Low",
+      "steps": [
+        "GET /orders/not-an-address → 400 bad_request",
+        "GET /orders/0x1234?status=Weird → 400 bad_request"
+      ]
+    },
+    "202": {
+      "key": "api.positions",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "/positions/:account returns the account's rows",
+      "priority": "High",
+      "steps": [
+        "GET /positions/alice → expect rows equal to SELECT * FROM positions WHERE account"
+      ]
+    },
+    "203": {
+      "key": "api.trades.total",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "/trades total equals COUNT(trades)",
+      "priority": "High",
+      "steps": [
+        "GET /trades?limit=2 → expect total == COUNT(*) and trades.length == 2"
+      ]
+    },
+    "204": {
+      "key": "api.trades.order",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "/trades is newest first by (block, log)",
+      "priority": "Medium",
+      "steps": [
+        "GET /trades → expect each row ≥ the next by (block_number, log_index)"
+      ]
+    },
+    "205": {
+      "key": "api.trades.cursor",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "Paging with the cursor yields every row exactly once",
+      "priority": "High",
+      "steps": [
+        "walk /trades?limit=2 following next_cursor until null → expect the union == all rows, no (tx, log) twice, next_cursor null at the end"
+      ]
+    },
+    "206": {
+      "key": "api.trades.limitcap",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "limit is capped at 100 and reported",
+      "priority": "Low",
+      "steps": [
+        "GET /trades?limit=1000 → expect limit 100 in the body"
+      ]
+    },
+    "207": {
+      "key": "api.trades.badparams",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "Bad limit or cursor is 400",
+      "priority": "Low",
+      "steps": [
+        "?limit=0 → 400; ?limit=abc → 400; ?cursor=%%% → 400"
+      ]
+    },
+    "208": {
+      "key": "api.trades.market",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "?market filters and total follows the filter",
+      "priority": "Medium",
+      "steps": [
+        "GET /trades?market=1 → expect every row market_id 1 and total == COUNT(trades where market_id = 1)",
+        "?market=99 → 404"
+      ]
+    },
+    "209": {
+      "key": "api.funding.history",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "/funding/history returns the funding rows for the market",
+      "priority": "Medium",
+      "steps": [
+        "advance one interval; updateFunding → wait indexed → GET /funding/history?market=1&period=1d → expect rows equal to the funding table for market 1"
+      ]
+    },
+    "210": {
+      "key": "api.funding.period",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "An unsupported period is 400 and the response lists the supported ones",
+      "priority": "High",
+      "steps": [
+        "?market=1&period=1h → 200; ?period=8h → 200; ?period=2h → 400 with supported [\"1h\",\"8h\",\"1d\"]; ?period=x → 400"
+      ]
+    },
+    "211": {
+      "key": "api.funding.market",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "market is required",
+      "priority": "Low",
+      "steps": [
+        "GET /funding/history → 400 bad_request"
+      ]
+    },
+    "212": {
+      "key": "api.liquidations",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "/liquidations returns the liquidations rows",
+      "priority": "High",
+      "steps": [
+        "after a liquidation → GET /liquidations → expect total == COUNT and the newest row == the DB row"
+      ]
+    },
+    "213": {
+      "key": "api.portfolio.401",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "No token is 401",
+      "priority": "High",
+      "steps": [
+        "GET /portfolio/summary → 401 unauthenticated"
+      ]
+    },
+    "214": {
+      "key": "api.portfolio.401.unknown",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "An unknown token is 401",
+      "priority": "High",
+      "steps": [
+        "Authorization: Bearer nope → 401 unauthenticated"
+      ]
+    },
+    "215": {
+      "key": "api.portfolio.403.scope",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "A read-scope token is 403",
+      "priority": "High",
+      "steps": [
+        "mint a read token via /auth/token → GET /portfolio/summary → 403 forbidden"
+      ]
+    },
+    "216": {
+      "key": "api.portfolio.403.other",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "A portfolio token bound to alice cannot read bob",
+      "priority": "High",
+      "steps": [
+        "mint a portfolio token with subject alice → GET /portfolio/summary?account=bob → 403 forbidden"
+      ]
+    },
+    "217": {
+      "key": "api.portfolio.ok",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "A portfolio token returns exactly the documented fields, equal to the rows",
+      "priority": "High",
+      "steps": [
+        "mint a portfolio token for alice → GET /portfolio/summary → 200; keys == {account, exists, deposits, withdrawals, open_orders, positions}; values == accounts row, COUNT(open+pending orders), positions rows"
+      ]
+    },
+    "218": {
+      "key": "api.portfolio.expired",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "An expired token is 401 token_expired",
+      "priority": "Medium",
+      "steps": [
+        "mint a portfolio token with ttl 1 → wait 2 s → GET → 401 code token_expired"
+      ]
+    },
+    "219": {
+      "key": "api.auth.admin",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "Only an admin token can mint tokens",
+      "priority": "High",
+      "steps": [
+        "POST /auth/token with a read token → 403; with no token → 401; with admin → 201 and a token row appears in api_keys"
+      ]
+    },
+    "220": {
+      "key": "api.auth.badscope",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "An unknown scope or a malformed subject is 400",
+      "priority": "Low",
+      "steps": [
+        "{scope: \"root\"} → 400; {scope: \"read\", subject: \"x\"} → 400"
+      ]
+    },
+    "221": {
+      "key": "api.cors.allowed",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "An allowlisted origin is echoed back exactly, with credentials",
+      "priority": "High",
+      "steps": [
+        "GET /markets with Origin: https://app.example.test → expect Access-Control-Allow-Origin == that exact string and Allow-Credentials true"
+      ]
+    },
+    "222": {
+      "key": "api.cors.suffix",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "A suffix attack origin gets no CORS header",
+      "priority": "High",
+      "steps": [
+        "Origin: https://app.example.test.evil.com → expect no Access-Control-Allow-Origin"
+      ]
+    },
+    "223": {
+      "key": "api.cors.parent",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "The parent domain gets no CORS header",
+      "priority": "High",
+      "steps": [
+        "Origin: https://example.test → expect no Access-Control-Allow-Origin"
+      ]
+    },
+    "224": {
+      "key": "api.cors.scheme",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "The same host over http gets no CORS header",
+      "priority": "High",
+      "steps": [
+        "Origin: http://app.example.test → expect no Access-Control-Allow-Origin"
+      ]
+    },
+    "225": {
+      "key": "api.cors.port",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "An explicit :443 gets no CORS header",
+      "priority": "Medium",
+      "steps": [
+        "Origin: https://app.example.test:443 → expect no Access-Control-Allow-Origin"
+      ]
+    },
+    "226": {
+      "key": "api.cors.null",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "\"null\" and a missing Origin get no CORS header",
+      "priority": "Medium",
+      "steps": [
+        "Origin: null → expect no ACAO",
+        "no Origin header → expect no ACAO and a normal 200"
+      ]
+    },
+    "227": {
+      "key": "api.cors.preflight",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "Preflight from an allowed origin is 204 with methods and headers",
+      "priority": "Medium",
+      "steps": [
+        "OPTIONS /portfolio/summary with Origin allowed and Access-Control-Request-Method GET → expect 204, Allow-Methods contains GET, Allow-Headers contains Authorization"
+      ]
+    },
+    "228": {
+      "key": "api.ratelimit",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "Over the limit the API answers 429 with Retry-After",
+      "priority": "High",
+      "steps": [
+        "send limit+5 requests inside the window → expect the last ones 429, body code rate_limited, Retry-After header a positive integer, and X-RateLimit-Remaining 0 before the first 429"
+      ]
+    },
+    "229": {
+      "key": "api.stale.200",
+      "module": "06. API — mini-api over the store",
+      "layer": "BE/API",
+      "tier": "api-mini",
+      "title": "With the indexer paused the API keeps answering 200 with stale rows, and says so in /health",
+      "priority": "High",
+      "steps": [
+        "pause indexer; alice buys at market; wait 2 s → GET /trades total unchanged, status 200, X-Indexed-Block unchanged; GET /health indexer_paused true and age_seconds growing",
+        "unpause → total +1"
+      ]
+    },
+    "230": {
+      "key": "bot.risk.round",
+      "module": "07. BOT — risk gate",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "The risk gate rounds size to the step and price to the tick",
+      "priority": "High",
+      "steps": [
+        "build a risk engine with the ETH spec (tick 0.01, step 0.001, min notional $10)",
+        "plan a buy of 1.2345 ETH at 2500.567 → expect action send, size floored to 1.234, price floored to 2500.56"
+      ]
+    },
+    "231": {
+      "key": "bot.risk.kill",
+      "module": "07. BOT — risk gate",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "The kill switch refuses every order",
+      "priority": "High",
+      "steps": [
+        "engage the kill switch",
+        "plan any order → expect refused with reason \"kill-switch\""
+      ]
+    },
+    "232": {
+      "key": "bot.risk.maxorder",
+      "module": "07. BOT — risk gate",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "An order above the max order size is refused",
+      "priority": "Medium",
+      "steps": [
+        "max order size 5",
+        "plan a buy of 6 ETH → expect refused with reason \"max-order-size\""
+      ]
+    },
+    "233": {
+      "key": "bot.risk.maxpos",
+      "module": "07. BOT — risk gate",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "An order that would breach the max position is refused, but a reduce-only order is not",
+      "priority": "High",
+      "steps": [
+        "max position 10, existing position 7 ETH",
+        "plan a buy of 4 ETH → expect refused with reason \"max-position\"",
+        "plan a reduce-only sell of 4 ETH → expect cleared to send"
+      ]
+    },
+    "234": {
+      "key": "bot.risk.zero",
+      "module": "07. BOT — risk gate",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "A size that rounds to zero at the step is refused",
+      "priority": "Medium",
+      "steps": [
+        "ETH step 0.001",
+        "plan a buy of 0.0005 ETH → expect refused with reason \"zero-size\""
+      ]
+    },
+    "235": {
+      "key": "bot.risk.minnotional",
+      "module": "07. BOT — risk gate",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "An order below the minimum notional is refused",
+      "priority": "Medium",
+      "steps": [
+        "ETH min notional $10",
+        "plan a buy of 0.001 ETH at 2500 ($2.50) → expect refused with reason \"below-min-notional\""
+      ]
+    },
+    "236": {
+      "key": "bot.risk.dup",
+      "module": "07. BOT — risk gate",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "A repeated userOrderId is a no-op, not a second order",
+      "priority": "High",
+      "steps": [
+        "plan a buy with user order id 1 → expect send",
+        "plan the same with user order id 1 again → expect action duplicate"
+      ]
+    },
+    "237": {
+      "key": "bot.risk.dryrun",
+      "module": "07. BOT — risk gate",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "Dry run clears an order but does not send it",
+      "priority": "Medium",
+      "steps": [
+        "engage dry run",
+        "plan a valid buy → expect action dry-run"
+      ]
+    },
+    "238": {
+      "key": "bot.gate.postonly",
+      "module": "07. BOT — contract gates",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "A post-only order that would cross is surfaced, not retried",
+      "priority": "High",
+      "steps": [
+        "bob rests an ask at 2500",
+        "the bot places a post-only buy at 2500 → expect it reverts PostOnlyWouldCross",
+        "expect the bot attempted the place exactly once"
+      ]
+    },
+    "239": {
+      "key": "bot.gate.reduceonly",
+      "module": "07. BOT — contract gates",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "A reduce-only order with no position is surfaced",
+      "priority": "Medium",
+      "steps": [
+        "the bot places a reduce-only sell with no position → expect it reverts ReduceOnlyViolation"
+      ]
+    },
+    "240": {
+      "key": "bot.gate.band",
+      "module": "07. BOT — contract gates",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "A limit outside the band is surfaced",
+      "priority": "Medium",
+      "steps": [
+        "the bot places a buy at 3000 while the index is 2500 (band 5%) → expect it reverts PriceOutOfBand"
+      ]
+    },
+    "241": {
+      "key": "bot.gate.paused",
+      "module": "07. BOT — contract gates",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "An order on a paused market is surfaced",
+      "priority": "Medium",
+      "steps": [
+        "the admin sets ETH to Paused",
+        "the bot places a buy → expect it reverts MarketPaused"
+      ]
+    },
+    "242": {
+      "key": "bot.gate.settling",
+      "module": "07. BOT — contract gates",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "An order on a settling market is surfaced",
+      "priority": "Medium",
+      "steps": [
+        "the admin sets ETH to Settling at 2500",
+        "the bot places a buy → expect it reverts MarketSettling"
+      ]
+    },
+    "243": {
+      "key": "bot.gate.selftrade",
+      "module": "07. BOT — contract gates",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "The bot cannot cross its own resting order",
+      "priority": "High",
+      "steps": [
+        "the bot rests a buy at 2499",
+        "the bot places a sell at 2499 → expect it reverts SelfTradePrevented"
+      ]
+    },
+    "244": {
+      "key": "bot.life.fund",
+      "module": "07. BOT — lifecycle",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "The bot funds and initialises an account",
+      "priority": "Medium",
+      "steps": [
+        "fund the bot with $50000 → expect accountExists true and vault balance $50000"
+      ]
+    },
+    "245": {
+      "key": "bot.life.place",
+      "module": "07. BOT — lifecycle",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "The bot places a limit and reads it back as planned",
+      "priority": "High",
+      "steps": [
+        "the bot places a limit buy of 1.2345 ETH at 2498.567 → read the order back → expect Open, size 1.234, price 2498.56"
+      ]
+    },
+    "246": {
+      "key": "bot.life.cancel",
+      "module": "07. BOT — lifecycle",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "The bot cancels its order",
+      "priority": "Medium",
+      "steps": [
+        "the bot rests a buy; cancel it → expect status Cancelled and 0 open orders"
+      ]
+    },
+    "247": {
+      "key": "bot.life.cancelall",
+      "module": "07. BOT — lifecycle",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "Cancel-all clears every resting order",
+      "priority": "Medium",
+      "steps": [
+        "the bot rests three buys → expect 3 open orders",
+        "cancel all → expect 0 open orders"
+      ]
+    },
+    "248": {
+      "key": "bot.life.flatten",
+      "module": "07. BOT — lifecycle",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "Flatten returns the bot to a clean slate after a fill",
+      "priority": "High",
+      "steps": [
+        "the bot rests an order and takes a position",
+        "flatten ETH → expect flat (position 0, 0 open orders)"
+      ]
+    },
+    "249": {
+      "key": "bot.life.dryrun",
+      "module": "07. BOT — lifecycle",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "A dry-run bot plans an order but places nothing on chain",
+      "priority": "Medium",
+      "steps": [
+        "a dry-run bot plans a limit buy → expect cleared as a dry run and 0 open orders on chain"
+      ]
+    },
+    "250": {
+      "key": "bot.fill.backstop",
+      "module": "07. BOT — fills",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "A market buy fills against the backstop",
+      "priority": "High",
+      "steps": [
+        "the bot buys 1 ETH at market → expect position 1 ETH and the backstop -1 ETH"
+      ]
+    },
+    "251": {
+      "key": "bot.fill.partial",
+      "module": "07. BOT — fills",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "An IOC limit fills what it can and cancels the rest",
+      "priority": "Medium",
+      "steps": [
+        "bob rests an ask of 1 ETH at 2500",
+        "the bot places an IOC buy of 3 ETH at 2500 → expect position 1 ETH"
+      ]
+    },
+    "252": {
+      "key": "bot.fill.size",
+      "module": "07. BOT — fills",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "A fill sets the position size and a positive entry price",
+      "priority": "Medium",
+      "steps": [
+        "the bot buys 2 ETH at market → expect size 2 ETH and entry price above 0"
+      ]
+    },
+    "253": {
+      "key": "bot.fill.margin",
+      "module": "07. BOT — fills",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "A fill debits free collateral for the margin",
+      "priority": "Medium",
+      "steps": [
+        "the bot buys 1 ETH at market → expect free collateral below the vault balance"
+      ]
+    },
+    "254": {
+      "key": "bot.fill.fee",
+      "module": "07. BOT — fills",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "A taker fill pays a fee to the treasury",
+      "priority": "Medium",
+      "steps": [
+        "note the treasury balance",
+        "the bot buys 1 ETH at market → expect the treasury balance to increase"
+      ]
+    },
+    "255": {
+      "key": "bot.fill.mined",
+      "module": "07. BOT — fills",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "A fill is mined and observable in the block it landed in",
+      "priority": "Medium",
+      "steps": [
+        "the bot buys 1 ETH at market → expect the receipt status 0x1 with a block number, and position 1 ETH"
+      ]
+    },
+    "256": {
+      "key": "bot.ops.retry",
+      "module": "07. BOT — operations",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "The retry policy retries a transient failure but never a revert",
+      "priority": "High",
+      "steps": [
+        "a transient (ChainUnreachable) is retried up to the limit (3 tries)",
+        "a Reverted is surfaced on the first attempt (1 try)"
+      ]
+    },
+    "257": {
+      "key": "bot.ops.nonce",
+      "module": "07. BOT — operations",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "Three orders advance the account nonce by exactly three",
+      "priority": "High",
+      "steps": [
+        "the bot places three limits → expect the account nonce to advance by exactly 3, consecutively"
+      ]
+    },
+    "258": {
+      "key": "bot.ops.pause",
+      "module": "07. BOT — operations",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "The bot halts when the exchange is paused",
+      "priority": "Medium",
+      "steps": [
+        "the admin pauses the exchange",
+        "the bot places a buy → expect it reverts ExchangePaused"
+      ]
+    },
+    "259": {
+      "key": "bot.ops.cleanup",
+      "module": "07. BOT — operations",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "Cleanup leaves the venue flat, confirmed by re-reading",
+      "priority": "High",
+      "steps": [
+        "the bot rests an order and takes a position",
+        "flatten ETH → re-read → expect flat and 0 open orders"
+      ]
+    },
+    "260": {
+      "key": "bot.ops.nosecret",
+      "module": "07. BOT — operations",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "The bot holds and logs no secret",
+      "priority": "High",
+      "steps": [
+        "inspect the bot record and fields → expect no 64-hex-character secret and no private-key field"
+      ]
+    },
+    "261": {
+      "key": "bot.ops.killswitch",
+      "module": "07. BOT — operations",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "Once the kill switch is thrown the bot sends nothing more",
+      "priority": "Medium",
+      "steps": [
+        "engage the bot kill switch",
+        "the bot places a buy → expect refused with reason \"kill-switch\" and 0 open orders on chain"
+      ]
+    },
+    "262": {
+      "key": "bot.param.btc",
+      "module": "07. BOT — lifecycle",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "BTC: the bot places a valid limit sized to clear the minimum notional",
+      "priority": "Medium",
+      "steps": [
+        "the bot places a limit buy of 0.01 BTC at 59000 → expect Open and notional >= min notional"
+      ]
+    },
+    "263": {
+      "key": "bot.param.eth",
+      "module": "07. BOT — lifecycle",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "ETH: the bot places a valid limit sized to clear the minimum notional",
+      "priority": "Medium",
+      "steps": [
+        "the bot places a limit buy of 0.1 ETH at 2490 → expect Open and notional >= min notional"
+      ]
+    },
+    "264": {
+      "key": "bot.param.sol",
+      "module": "07. BOT — lifecycle",
+      "layer": "BE/BOT",
+      "tier": "bot",
+      "title": "SOL: the bot places a valid limit sized to clear the minimum notional",
+      "priority": "Medium",
+      "steps": [
+        "the bot places a limit buy of 1 SOL at 99 → expect Open and notional >= min notional"
+      ]
+    },
+    "265": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "The whitelisted token count matches the array",
+      "priority": "High",
+      "steps": [
+        "eth_call whitelistedTokenCount() and enumerate allWhitelistedTokens",
+        "Expect count() == the number of array entries with whitelistedTokens(address)==1"
+      ]
+    },
+    "266": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "Stable swaps are not dearer than ordinary swaps",
+      "priority": "Medium",
+      "steps": [
+        "eth_call swapFeeBasisPoints() and stableSwapFeeBasisPoints()",
+        "Expect swap >= stableSwap"
+      ]
+    },
+    "267": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "The core fees are each within a sane bound",
+      "priority": "Medium",
+      "steps": [
+        "eth_call taxBasisPoints, stableTaxBasisPoints, mintBurnFeeBasisPoints, swapFeeBasisPoints, stableSwapFeeBasisPoints",
+        "Expect each <= 500 bps"
+      ]
+    },
+    "268": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "Funding accrues on an hourly interval",
+      "priority": "Medium",
+      "steps": [
+        "eth_call fundingInterval()",
+        "Expect == 3600"
+      ]
+    },
+    "269": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "The minimum-profit window is positive and bounded",
+      "priority": "Low",
+      "steps": [
+        "eth_call minProfitTime()",
+        "Expect 0 < minProfitTime <= 86400"
+      ]
+    },
+    "270": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "Dynamic fees are enabled",
+      "priority": "Low",
+      "steps": [
+        "eth_call hasDynamicFees()",
+        "Expect == 1"
+      ]
+    },
+    "271": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "The liquidation fee is a positive, bounded USD amount",
+      "priority": "Medium",
+      "steps": [
+        "eth_call liquidationFeeUsd() (30-decimal USD)",
+        "Expect 0 < value <= $100"
+      ]
+    },
+    "272": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "The funding rate factors are positive and bounded",
+      "priority": "Medium",
+      "steps": [
+        "eth_call fundingRateFactor() and stableFundingRateFactor()",
+        "Expect both > 0 and <= 10000"
+      ]
+    },
+    "273": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "Every whitelisted token reserves no more than its pool",
+      "priority": "High",
+      "steps": [
+        "For every whitelisted token: eth_call poolAmounts and reservedAmounts",
+        "Expect reserved <= pool for each"
+      ]
+    },
+    "274": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "Every whitelisted token has an ordered, positive oracle spread",
+      "priority": "High",
+      "steps": [
+        "For every whitelisted token: eth_call getMinPrice and getMaxPrice",
+        "Expect 0 < min <= max for each"
+      ]
+    },
+    "275": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "Every whitelisted token has non-zero decimals",
+      "priority": "Medium",
+      "steps": [
+        "For every whitelisted token: eth_call tokenDecimals(address)",
+        "Expect decimals > 0 for each"
+      ]
+    },
+    "276": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "Weight tracks whitelisting",
+      "priority": "High",
+      "steps": [
+        "For every array entry: eth_call whitelistedTokens and tokenWeights",
+        "Expect whitelisted => weight > 0, and de-listed => weight == 0"
+      ]
+    },
+    "277": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "Every non-zero short interest has an average entry price",
+      "priority": "High",
+      "steps": [
+        "For every token: eth_call globalShortSizes and globalShortAveragePrices",
+        "Expect shortSize == 0 OR averagePrice > 0"
+      ]
+    },
+    "278": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "Every whitelisted token holds a positive pool",
+      "priority": "Medium",
+      "steps": [
+        "For every whitelisted token: eth_call poolAmounts(address)",
+        "Expect pool > 0 for each"
+      ]
+    },
+    "279": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "Stablecoins are weighted, flagged and guarantee no USD",
+      "priority": "Medium",
+      "steps": [
+        "For every whitelisted stable token: eth_call stableTokens, tokenWeights, guaranteedUsd",
+        "Expect flagged stable, weight > 0, guaranteedUsd == 0"
+      ]
+    },
+    "280": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "Cumulative funding never runs negative",
+      "priority": "Medium",
+      "steps": [
+        "For every token: eth_call cumulativeFundingRates(address)",
+        "Expect >= 0"
+      ]
+    },
+    "281": {
+      "module": "01. Contract — GMX (read-only)",
+      "layer": "BE/Contract",
+      "tier": "contract-gmx",
+      "title": "The cached total weight is the basis-point scale",
+      "priority": "Low",
+      "steps": [
+        "eth_call totalTokenWeights()",
+        "Expect == 100000"
+      ]
+    },
+    "282": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "The ETH market is live and cross-margined",
+      "priority": "Medium",
+      "steps": [
+        "GET v1/markets/config, take ETH/USD [WETH-USDC]",
+        "Expect isDisabled false and isSpotOnly false"
+      ]
+    },
+    "283": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "The BTC market is live and cross-margined",
+      "priority": "Medium",
+      "steps": [
+        "GET v1/markets/config, take BTC/USD [BTC-USDC]",
+        "Expect isDisabled false and isSpotOnly false"
+      ]
+    },
+    "284": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "The SOL market is live and cross-margined",
+      "priority": "Medium",
+      "steps": [
+        "GET v1/markets/config, take SOL/USD [SOL-USDC]",
+        "Expect isDisabled false and isSpotOnly false"
+      ]
+    },
+    "285": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "ETH pool value ordered and risk factors set",
+      "priority": "Medium",
+      "steps": [
+        "GET markets/config and markets/values for ETH",
+        "Expect poolValueMin <= poolValueMax; reserveFactorLong/Short and minCollateralFactor > 0"
+      ]
+    },
+    "286": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "BTC pool value ordered and risk factors set",
+      "priority": "Medium",
+      "steps": [
+        "GET markets/config and markets/values for BTC",
+        "Expect poolValueMin <= poolValueMax; reserveFactorLong/Short and minCollateralFactor > 0"
+      ]
+    },
+    "287": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "SOL pool value ordered and risk factors set",
+      "priority": "Medium",
+      "steps": [
+        "GET markets/config and markets/values for SOL",
+        "Expect poolValueMin <= poolValueMax; reserveFactorLong/Short and minCollateralFactor > 0"
+      ]
+    },
+    "288": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "ETH open interest agrees in tokens and USD",
+      "priority": "Medium",
+      "steps": [
+        "GET markets/values for ETH",
+        "Expect longInterestInTokens set iff longInterestUsd set; same for short"
+      ]
+    },
+    "289": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "BTC open interest agrees in tokens and USD",
+      "priority": "Medium",
+      "steps": [
+        "GET markets/values for BTC",
+        "Expect longInterestInTokens set iff longInterestUsd set; same for short"
+      ]
+    },
+    "290": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "SOL open interest agrees in tokens and USD",
+      "priority": "Medium",
+      "steps": [
+        "GET markets/values for SOL",
+        "Expect longInterestInTokens set iff longInterestUsd set; same for short"
+      ]
+    },
+    "291": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "ETH borrowing and funding factors well formed",
+      "priority": "Medium",
+      "steps": [
+        "GET markets/values for ETH",
+        "Expect borrowingFactorPerSecondForLongs/Shorts >= 0 and fundingFactorPerSecond present"
+      ]
+    },
+    "292": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "BTC borrowing and funding factors well formed",
+      "priority": "Medium",
+      "steps": [
+        "GET markets/values for BTC",
+        "Expect borrowingFactorPerSecondForLongs/Shorts >= 0 and fundingFactorPerSecond present"
+      ]
+    },
+    "293": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "SOL borrowing and funding factors well formed",
+      "priority": "Medium",
+      "steps": [
+        "GET markets/values for SOL",
+        "Expect borrowingFactorPerSecondForLongs/Shorts >= 0 and fundingFactorPerSecond present"
+      ]
+    },
+    "294": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "ETH values reference the configured market token",
+      "priority": "Medium",
+      "steps": [
+        "GET markets/config and markets/values for ETH",
+        "Expect values.marketTokenAddress == config.marketTokenAddress"
+      ]
+    },
+    "295": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "BTC values reference the configured market token",
+      "priority": "Medium",
+      "steps": [
+        "GET markets/config and markets/values for BTC",
+        "Expect values.marketTokenAddress == config.marketTokenAddress"
+      ]
+    },
+    "296": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "SOL values reference the configured market token",
+      "priority": "Medium",
+      "steps": [
+        "GET markets/config and markets/values for SOL",
+        "Expect values.marketTokenAddress == config.marketTokenAddress"
+      ]
+    },
+    "297": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "Every ticker entry has an ordered, positive price",
+      "priority": "High",
+      "steps": [
+        "GET prices/tickers",
+        "Expect for every entry: minPrice <= maxPrice as BigInt, both > 0"
+      ]
+    },
+    "298": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "No token symbol appears twice in the ticker set",
+      "priority": "Medium",
+      "steps": [
+        "GET prices/tickers",
+        "Expect tokenSymbol values are unique"
+      ]
+    },
+    "299": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "The tested markets all appear in the ticker set",
+      "priority": "Medium",
+      "steps": [
+        "GET prices/tickers",
+        "Expect ETH, BTC and SOL all present"
+      ]
+    },
+    "300": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "An hourly candle series is spaced by exactly one hour",
+      "priority": "Medium",
+      "steps": [
+        "GET prices/candles?tokenSymbol=ETH&period=1h&limit=6",
+        "Expect strictly decreasing timestamps 3600s apart"
+      ]
+    },
+    "301": {
+      "module": "02. API — GMX public (read-only)",
+      "layer": "BE/API",
+      "tier": "api-gmx",
+      "title": "A candle request with no token is rejected with a client error",
+      "priority": "Low",
+      "steps": [
+        "GET prices/candles?tokenSymbol=&period=1m",
+        "Expect a 4xx status"
+      ]
+    }
+  }
+}

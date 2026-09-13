@@ -1,0 +1,38 @@
+[project]
+name = "crypto-perp-qa"
+version = "1.0.0"
+description = "Crypto perpetuals domain: FE on a live DEX screen; BE over a self-written exchange (contract, DB, API, bot) and a live protocol (read-only)"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
+# The Gherkin sources live at the domain root and are SHARED with ../node.
+bdd_features_base_dir = "../features"
+
+addopts = "-q -p no:cacheprovider"
+
+# Examples-level @case:N tags arrive as raw marks named "case:N" (see conftest);
+# their names cannot be pre-registered, so the unknown-mark warning is silenced
+# for that prefix only. Every other tag is still registered below.
+filterwarnings = ["ignore:Unknown pytest.mark.case:pytest.PytestUnknownMarkWarning"]
+
+markers = [
+    "case_id(id): the immutable catalogue ID this scenario reports against",
+    # Mirror the Cucumber tags, so `pytest -m be` selects the same set as
+    # `cucumber-js --tags @be`. Registered rather than swallowed in the tag
+    # hook, so the selector actually works instead of being silently discarded.
+    "be: backend branch -- no browser",
+    "fe: frontend branch -- drives a real screen with Playwright",
+    "contract: reads or writes a contract over JSON-RPC",
+    "db: reads the indexer's SQLite file directly",
+    "api: calls an HTTP API",
+    "bot: drives the trading bot",
+    "gmx: target is the live GMX protocol",
+    "perpdex: target is PerpDEX on anvil",
+    "mini: target is mini-api, the REST layer over the indexer store",
+]
+
+# Self-tests sit next to what they test (be/**/test_*.py without a scenarios()
+# call); tiers are be/**/steps and fe/**/steps. All under one root.
+testpaths = ["be", "fe"]

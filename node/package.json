@@ -1,0 +1,31 @@
+{
+  "name": "crypto-perp-qa",
+  "version": "1.0.0",
+  "description": "Crypto perpetuals domain: FE on a live DEX screen; BE over a self-written exchange (contract, DB, API, bot) and a live protocol (read-only).",
+  "license": "MIT",
+  "private": true,
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "selftest": "node --test \"be/**/*.test.js\"",
+    "be": "cucumber-js --tags @be",
+    "be:contract": "cucumber-js --tags \"@be and @contract\"",
+    "be:db": "cucumber-js --tags \"@be and @db\"",
+    "be:api": "cucumber-js --tags \"@be and @api\"",
+    "be:bot": "cucumber-js --tags \"@be and @bot\"",
+    "fe": "cucumber-js --tags @fe",
+    "fe:specs": "playwright test",
+    "bdd": "cucumber-js",
+    "report": "qa-report",
+    "verify": "qa-verify",
+    "bugflow": "qa-bugflow",
+    "pipeline": "node pipeline.js",
+    "clean": "node -e \"for (const d of ['reports','queue','state','test-results']) require('fs').rmSync(d,{recursive:true,force:true})\""
+  },
+  "dependencies": {
+    "@portfolio/core": "file:../core/node"
+  },
+  "devDependencies": {
+    "@cucumber/cucumber": "^11.0.0",
+    "@playwright/test": "^1.49.0"
+  }
+}

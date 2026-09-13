@@ -1,0 +1,44 @@
+# Every output pattern is ANCHORED (leading /) or scoped to a run folder.
+# An unanchored "queue/" once swallowed core/node/queue/*.js -- source that the
+# working tree still had on disk, so nothing warned. CI has a packaging job
+# that fails if any tracked-looking source path is being ignored.
+
+# dependencies
+node_modules/
+/.venv/
+/.venv-ci/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# run outputs -- one set per stack
+/node/queue/
+/node/reports/
+/node/state/
+/node/test-results/
+/node/playwright-report/
+/python/queue/
+/python/reports/
+/python/state/
+/python/.pytest_cache/
+/core/python/.pytest_cache/
+
+# services' live data (schema and seed are tracked; the running db is not)
+/services/*/data/
+
+# foundry
+/contracts/out/
+/contracts/cache/
+/contracts/broadcast/
+/contracts/deployments/
+
+# secrets -- none are needed, but never let one in by accident
+.env
+.env.*
+!.env.example
+
+# editors / os
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,25 @@
+{
+  "name": "@portfolio/core",
+  "version": "1.0.0",
+  "description": "Shared QA core: grading with fixed precedence, append-only result queue, measurement controls, reporting, gate, idempotent bug flow.",
+  "license": "MIT",
+  "private": true,
+  "main": "index.js",
+  "engines": { "node": ">=22.13" },
+  "bin": {
+    "qa-report": "bridge/run.js",
+    "qa-verify": "verify-expectations.js",
+    "qa-bugflow": "bugflow/run.js"
+  },
+  "scripts": {
+    "selftest": "node --test \"selftest/*.test.js\""
+  },
+  "peerDependencies": {
+    "@cucumber/cucumber": "^11.0.0",
+    "@playwright/test": "^1.49.0"
+  },
+  "peerDependenciesMeta": {
+    "@cucumber/cucumber": { "optional": true },
+    "@playwright/test": { "optional": true }
+  }
+}

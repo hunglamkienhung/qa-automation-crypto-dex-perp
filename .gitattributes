@@ -1,0 +1,25 @@
+# Normalise line endings in the repository to LF, on every platform.
+#
+# Without this, a clone on Windows with the default core.autocrlf=true rewrites
+# every text file to CRLF on checkout. Nothing breaks loudly -- but the queue
+# format is specified as LF (docs/QUEUE-FORMAT.md), and src/lib/diff.js exists
+# partly because CRLF-vs-LF is the single most common source of false
+# differences when comparing two sources of the same value.
+#
+# A repository that documents that trap should not ship it.
+* text=auto eol=lf
+
+# Binary: never touched, never diffed as text.
+*.png  binary
+*.jpg  binary
+*.zip  binary
+*.7z   binary
+
+# Language stats (GitHub Linguist): keep the badge honest about this being a QA
+# automation project, not a Solidity one. Vendored and generated files are
+# excluded from the language breakdown; the hand-written test code is not.
+contracts/lib/**                                linguist-vendored
+**/package-lock.json                            linguist-generated
+**/*.xlsx                                        linguist-generated
+fixtures/testcases.json                         linguist-generated
+testcases/*-TestCases.md                        linguist-generated

@@ -1,0 +1,117 @@
+name: ci
+
+# One shared core, two stacks, one Gherkin set. The jobs mirror how the suite
+# runs locally: the core self-tests first, then the contract build, then each
+# tier against the service it targets. A tier that reads a live third party
+# (GMX) grades Blocked when the source is unreachable and never fails the build
+# on it; the gate verifies the SHAPE of the run instead.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # ---- source hygiene -------------------------------------------------------
+  packaging:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: No tracked-looking source is gitignored
+        run: |
+          # An over-broad ignore once swallowed core/node/queue/*.js. Fail if a
+          # path that looks like source is being ignored.
+          bad=$(git ls-files --others --ignored --exclude-standard | grep -E '\.(js|py|sol|sql)$' | grep -vE 'node_modules/|/data/|/out/|/cache/|\.venv/' || true)
+          if [ -n "$bad" ]; then echo "ignored source files:"; echo "$bad"; exit 1; fi
+          echo "ok"
+
+  cleanroom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Clean-room keyword scan
+        run: bash scripts/cleanroom-scan.sh
+
+  # ---- shared core ----------------------------------------------------------
+  core-selftest-node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '24' }
+      - run: node --test "selftest/*.test.js"
+        working-directory: core/node
+
+  core-selftest-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -e core/python pytest
+      - run: python -m pytest core/python/selftest -q
+
+  # ---- the self-written exchange --------------------------------------------
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+      - name: forge build and test
+        working-directory: contracts
+        run: |
+          forge --version
+          forge build
+          forge test -vv
+
+  crypto-be-no-browser:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        stack: [node, python]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '24' }
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - uses: foundry-rs/foundry-toolchain@v1
+      - name: Fresh anvil + PerpDEX + mini-api, then the BE tiers (no browser)
+        env:
+          MINI_API_DB: /tmp/mini-api/mini-api.db
+          MINI_API_ADMIN_TOKEN: local-admin-token
+        run: bash scripts/run-be.sh ${{ matrix.stack }}
+
+  crypto-fe:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        stack: [node, python]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '24' }
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: The GMX trading screen (Playwright chromium)
+        run: bash scripts/run-fe.sh ${{ matrix.stack }}
+
+  # ---- the shape gate: the whole suite, one stack, verified against baseline
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '24' }
+      - uses: foundry-rs/foundry-toolchain@v1
+      - name: Whole suite, then verify the run's shape
+        env:
+          MINI_API_DB: /tmp/mini-api/mini-api.db
+          MINI_API_ADMIN_TOKEN: local-admin-token
+        run: bash scripts/gate.sh node

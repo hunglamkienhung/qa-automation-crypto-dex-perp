@@ -1,0 +1,1193 @@
+{
+  "why": [
+    "A declared status may be a single value or a LIST of acceptable ones.",
+    "Cases that read a live source declare [\"Passed\",\"Blocked\"]: the invariant held, or the source was unreachable and nothing was measured.",
+    "What no list ever contains is Failed. An unreachable node must never be reported as an insolvent protocol.",
+    "Case 2 is always Blocked: it carries an assertion that cannot be observed at all.",
+    "No case is declared Failed. Nothing here is currently failing, and manufacturing a failure to have one would be dishonest.",
+    "PerpDEX cases (43-163) are deterministic on anvil. They declare [\"Passed\",\"Blocked\"] only because a run without the local chain must grade Blocked, never Failed; with the chain up, every one of them is expected to Pass.",
+    "DB (164-189) and mini-api (190-229) cases are deterministic on anvil with the indexer and REST service running; they declare [\"Passed\",\"Blocked\"] for the same reason as PerpDEX -- a run without the local chain or service must grade Blocked, never Failed.",
+    "Bot risk-gate cases (230-237) and the retry/no-secret cases (256, 260) are pure functions with no external source, so they declare a single \"Passed\"; the bot cases that drive PerpDEX declare [\"Passed\",\"Blocked\"] like every other anvil tier.",
+    "The expanded GMX contract (265-281) and API (282-301) cases read the live Arbitrum RPC and GMX public endpoints, so they declare [\"Passed\",\"Blocked\"] -- an unreachable node or venue is Blocked, never Failed."
+  ],
+  "summary": {
+    "total": 301,
+    "Passed": 300,
+    "Failed": 0,
+    "Blocked": 1,
+    "note": "nominal: every live source reachable and anvil running with a fresh PerpDEX"
+  },
+  "cases": {
+    "1": [
+      "Passed",
+      "Blocked"
+    ],
+    "2": "Blocked",
+    "3": [
+      "Passed",
+      "Blocked"
+    ],
+    "4": [
+      "Passed",
+      "Blocked"
+    ],
+    "5": [
+      "Passed",
+      "Blocked"
+    ],
+    "6": [
+      "Passed",
+      "Blocked"
+    ],
+    "7": [
+      "Passed",
+      "Blocked"
+    ],
+    "8": [
+      "Passed",
+      "Blocked"
+    ],
+    "9": [
+      "Passed",
+      "Blocked"
+    ],
+    "10": [
+      "Passed",
+      "Blocked"
+    ],
+    "11": [
+      "Passed",
+      "Blocked"
+    ],
+    "12": [
+      "Passed",
+      "Blocked"
+    ],
+    "13": [
+      "Passed",
+      "Blocked"
+    ],
+    "14": [
+      "Passed",
+      "Blocked"
+    ],
+    "15": [
+      "Passed",
+      "Blocked"
+    ],
+    "16": [
+      "Passed",
+      "Blocked"
+    ],
+    "17": [
+      "Passed",
+      "Blocked"
+    ],
+    "18": [
+      "Passed",
+      "Blocked"
+    ],
+    "19": [
+      "Passed",
+      "Blocked"
+    ],
+    "20": [
+      "Passed",
+      "Blocked"
+    ],
+    "21": [
+      "Passed",
+      "Blocked"
+    ],
+    "22": [
+      "Passed",
+      "Blocked"
+    ],
+    "23": [
+      "Passed",
+      "Blocked"
+    ],
+    "24": [
+      "Passed",
+      "Blocked"
+    ],
+    "25": [
+      "Passed",
+      "Blocked"
+    ],
+    "26": [
+      "Passed",
+      "Blocked"
+    ],
+    "27": [
+      "Passed",
+      "Blocked"
+    ],
+    "28": [
+      "Passed",
+      "Blocked"
+    ],
+    "29": [
+      "Passed",
+      "Blocked"
+    ],
+    "30": [
+      "Passed",
+      "Blocked"
+    ],
+    "31": [
+      "Passed",
+      "Blocked"
+    ],
+    "32": [
+      "Passed",
+      "Blocked"
+    ],
+    "33": [
+      "Passed",
+      "Blocked"
+    ],
+    "34": [
+      "Passed",
+      "Blocked"
+    ],
+    "35": [
+      "Passed",
+      "Blocked"
+    ],
+    "36": [
+      "Passed",
+      "Blocked"
+    ],
+    "37": [
+      "Passed",
+      "Blocked"
+    ],
+    "38": [
+      "Passed",
+      "Blocked"
+    ],
+    "39": [
+      "Passed",
+      "Blocked"
+    ],
+    "40": [
+      "Passed",
+      "Blocked"
+    ],
+    "41": [
+      "Passed",
+      "Blocked"
+    ],
+    "42": [
+      "Passed",
+      "Blocked"
+    ],
+    "43": [
+      "Passed",
+      "Blocked"
+    ],
+    "44": [
+      "Passed",
+      "Blocked"
+    ],
+    "45": [
+      "Passed",
+      "Blocked"
+    ],
+    "46": [
+      "Passed",
+      "Blocked"
+    ],
+    "47": [
+      "Passed",
+      "Blocked"
+    ],
+    "48": [
+      "Passed",
+      "Blocked"
+    ],
+    "49": [
+      "Passed",
+      "Blocked"
+    ],
+    "50": [
+      "Passed",
+      "Blocked"
+    ],
+    "51": [
+      "Passed",
+      "Blocked"
+    ],
+    "52": [
+      "Passed",
+      "Blocked"
+    ],
+    "53": [
+      "Passed",
+      "Blocked"
+    ],
+    "54": [
+      "Passed",
+      "Blocked"
+    ],
+    "55": [
+      "Passed",
+      "Blocked"
+    ],
+    "56": [
+      "Passed",
+      "Blocked"
+    ],
+    "57": [
+      "Passed",
+      "Blocked"
+    ],
+    "58": [
+      "Passed",
+      "Blocked"
+    ],
+    "59": [
+      "Passed",
+      "Blocked"
+    ],
+    "60": [
+      "Passed",
+      "Blocked"
+    ],
+    "61": [
+      "Passed",
+      "Blocked"
+    ],
+    "62": [
+      "Passed",
+      "Blocked"
+    ],
+    "63": [
+      "Passed",
+      "Blocked"
+    ],
+    "64": [
+      "Passed",
+      "Blocked"
+    ],
+    "65": [
+      "Passed",
+      "Blocked"
+    ],
+    "66": [
+      "Passed",
+      "Blocked"
+    ],
+    "67": [
+      "Passed",
+      "Blocked"
+    ],
+    "68": [
+      "Passed",
+      "Blocked"
+    ],
+    "69": [
+      "Passed",
+      "Blocked"
+    ],
+    "70": [
+      "Passed",
+      "Blocked"
+    ],
+    "71": [
+      "Passed",
+      "Blocked"
+    ],
+    "72": [
+      "Passed",
+      "Blocked"
+    ],
+    "73": [
+      "Passed",
+      "Blocked"
+    ],
+    "74": [
+      "Passed",
+      "Blocked"
+    ],
+    "75": [
+      "Passed",
+      "Blocked"
+    ],
+    "76": [
+      "Passed",
+      "Blocked"
+    ],
+    "77": [
+      "Passed",
+      "Blocked"
+    ],
+    "78": [
+      "Passed",
+      "Blocked"
+    ],
+    "79": [
+      "Passed",
+      "Blocked"
+    ],
+    "80": [
+      "Passed",
+      "Blocked"
+    ],
+    "81": [
+      "Passed",
+      "Blocked"
+    ],
+    "82": [
+      "Passed",
+      "Blocked"
+    ],
+    "83": [
+      "Passed",
+      "Blocked"
+    ],
+    "84": [
+      "Passed",
+      "Blocked"
+    ],
+    "85": [
+      "Passed",
+      "Blocked"
+    ],
+    "86": [
+      "Passed",
+      "Blocked"
+    ],
+    "87": [
+      "Passed",
+      "Blocked"
+    ],
+    "88": [
+      "Passed",
+      "Blocked"
+    ],
+    "89": [
+      "Passed",
+      "Blocked"
+    ],
+    "90": [
+      "Passed",
+      "Blocked"
+    ],
+    "91": [
+      "Passed",
+      "Blocked"
+    ],
+    "92": [
+      "Passed",
+      "Blocked"
+    ],
+    "93": [
+      "Passed",
+      "Blocked"
+    ],
+    "94": [
+      "Passed",
+      "Blocked"
+    ],
+    "95": [
+      "Passed",
+      "Blocked"
+    ],
+    "96": [
+      "Passed",
+      "Blocked"
+    ],
+    "97": [
+      "Passed",
+      "Blocked"
+    ],
+    "98": [
+      "Passed",
+      "Blocked"
+    ],
+    "99": [
+      "Passed",
+      "Blocked"
+    ],
+    "100": [
+      "Passed",
+      "Blocked"
+    ],
+    "101": [
+      "Passed",
+      "Blocked"
+    ],
+    "102": [
+      "Passed",
+      "Blocked"
+    ],
+    "103": [
+      "Passed",
+      "Blocked"
+    ],
+    "104": [
+      "Passed",
+      "Blocked"
+    ],
+    "105": [
+      "Passed",
+      "Blocked"
+    ],
+    "106": [
+      "Passed",
+      "Blocked"
+    ],
+    "107": [
+      "Passed",
+      "Blocked"
+    ],
+    "108": [
+      "Passed",
+      "Blocked"
+    ],
+    "109": [
+      "Passed",
+      "Blocked"
+    ],
+    "110": [
+      "Passed",
+      "Blocked"
+    ],
+    "111": [
+      "Passed",
+      "Blocked"
+    ],
+    "112": [
+      "Passed",
+      "Blocked"
+    ],
+    "113": [
+      "Passed",
+      "Blocked"
+    ],
+    "114": [
+      "Passed",
+      "Blocked"
+    ],
+    "115": [
+      "Passed",
+      "Blocked"
+    ],
+    "116": [
+      "Passed",
+      "Blocked"
+    ],
+    "117": [
+      "Passed",
+      "Blocked"
+    ],
+    "118": [
+      "Passed",
+      "Blocked"
+    ],
+    "119": [
+      "Passed",
+      "Blocked"
+    ],
+    "120": [
+      "Passed",
+      "Blocked"
+    ],
+    "121": [
+      "Passed",
+      "Blocked"
+    ],
+    "122": [
+      "Passed",
+      "Blocked"
+    ],
+    "123": [
+      "Passed",
+      "Blocked"
+    ],
+    "124": [
+      "Passed",
+      "Blocked"
+    ],
+    "125": [
+      "Passed",
+      "Blocked"
+    ],
+    "126": [
+      "Passed",
+      "Blocked"
+    ],
+    "127": [
+      "Passed",
+      "Blocked"
+    ],
+    "128": [
+      "Passed",
+      "Blocked"
+    ],
+    "129": [
+      "Passed",
+      "Blocked"
+    ],
+    "130": [
+      "Passed",
+      "Blocked"
+    ],
+    "131": [
+      "Passed",
+      "Blocked"
+    ],
+    "132": [
+      "Passed",
+      "Blocked"
+    ],
+    "133": [
+      "Passed",
+      "Blocked"
+    ],
+    "134": [
+      "Passed",
+      "Blocked"
+    ],
+    "135": [
+      "Passed",
+      "Blocked"
+    ],
+    "136": [
+      "Passed",
+      "Blocked"
+    ],
+    "137": [
+      "Passed",
+      "Blocked"
+    ],
+    "138": [
+      "Passed",
+      "Blocked"
+    ],
+    "139": [
+      "Passed",
+      "Blocked"
+    ],
+    "140": [
+      "Passed",
+      "Blocked"
+    ],
+    "141": [
+      "Passed",
+      "Blocked"
+    ],
+    "142": [
+      "Passed",
+      "Blocked"
+    ],
+    "143": [
+      "Passed",
+      "Blocked"
+    ],
+    "144": [
+      "Passed",
+      "Blocked"
+    ],
+    "145": [
+      "Passed",
+      "Blocked"
+    ],
+    "146": [
+      "Passed",
+      "Blocked"
+    ],
+    "147": [
+      "Passed",
+      "Blocked"
+    ],
+    "148": [
+      "Passed",
+      "Blocked"
+    ],
+    "149": [
+      "Passed",
+      "Blocked"
+    ],
+    "150": [
+      "Passed",
+      "Blocked"
+    ],
+    "151": [
+      "Passed",
+      "Blocked"
+    ],
+    "152": [
+      "Passed",
+      "Blocked"
+    ],
+    "153": [
+      "Passed",
+      "Blocked"
+    ],
+    "154": [
+      "Passed",
+      "Blocked"
+    ],
+    "155": [
+      "Passed",
+      "Blocked"
+    ],
+    "156": [
+      "Passed",
+      "Blocked"
+    ],
+    "157": [
+      "Passed",
+      "Blocked"
+    ],
+    "158": [
+      "Passed",
+      "Blocked"
+    ],
+    "159": [
+      "Passed",
+      "Blocked"
+    ],
+    "160": [
+      "Passed",
+      "Blocked"
+    ],
+    "161": [
+      "Passed",
+      "Blocked"
+    ],
+    "162": [
+      "Passed",
+      "Blocked"
+    ],
+    "163": [
+      "Passed",
+      "Blocked"
+    ],
+    "164": [
+      "Passed",
+      "Blocked"
+    ],
+    "165": [
+      "Passed",
+      "Blocked"
+    ],
+    "166": [
+      "Passed",
+      "Blocked"
+    ],
+    "167": [
+      "Passed",
+      "Blocked"
+    ],
+    "168": [
+      "Passed",
+      "Blocked"
+    ],
+    "169": [
+      "Passed",
+      "Blocked"
+    ],
+    "170": [
+      "Passed",
+      "Blocked"
+    ],
+    "171": [
+      "Passed",
+      "Blocked"
+    ],
+    "172": [
+      "Passed",
+      "Blocked"
+    ],
+    "173": [
+      "Passed",
+      "Blocked"
+    ],
+    "174": [
+      "Passed",
+      "Blocked"
+    ],
+    "175": [
+      "Passed",
+      "Blocked"
+    ],
+    "176": [
+      "Passed",
+      "Blocked"
+    ],
+    "177": [
+      "Passed",
+      "Blocked"
+    ],
+    "178": [
+      "Passed",
+      "Blocked"
+    ],
+    "179": [
+      "Passed",
+      "Blocked"
+    ],
+    "180": [
+      "Passed",
+      "Blocked"
+    ],
+    "181": [
+      "Passed",
+      "Blocked"
+    ],
+    "182": [
+      "Passed",
+      "Blocked"
+    ],
+    "183": [
+      "Passed",
+      "Blocked"
+    ],
+    "184": [
+      "Passed",
+      "Blocked"
+    ],
+    "185": [
+      "Passed",
+      "Blocked"
+    ],
+    "186": [
+      "Passed",
+      "Blocked"
+    ],
+    "187": [
+      "Passed",
+      "Blocked"
+    ],
+    "188": [
+      "Passed",
+      "Blocked"
+    ],
+    "189": [
+      "Passed",
+      "Blocked"
+    ],
+    "190": [
+      "Passed",
+      "Blocked"
+    ],
+    "191": [
+      "Passed",
+      "Blocked"
+    ],
+    "192": [
+      "Passed",
+      "Blocked"
+    ],
+    "193": [
+      "Passed",
+      "Blocked"
+    ],
+    "194": [
+      "Passed",
+      "Blocked"
+    ],
+    "195": [
+      "Passed",
+      "Blocked"
+    ],
+    "196": [
+      "Passed",
+      "Blocked"
+    ],
+    "197": [
+      "Passed",
+      "Blocked"
+    ],
+    "198": [
+      "Passed",
+      "Blocked"
+    ],
+    "199": [
+      "Passed",
+      "Blocked"
+    ],
+    "200": [
+      "Passed",
+      "Blocked"
+    ],
+    "201": [
+      "Passed",
+      "Blocked"
+    ],
+    "202": [
+      "Passed",
+      "Blocked"
+    ],
+    "203": [
+      "Passed",
+      "Blocked"
+    ],
+    "204": [
+      "Passed",
+      "Blocked"
+    ],
+    "205": [
+      "Passed",
+      "Blocked"
+    ],
+    "206": [
+      "Passed",
+      "Blocked"
+    ],
+    "207": [
+      "Passed",
+      "Blocked"
+    ],
+    "208": [
+      "Passed",
+      "Blocked"
+    ],
+    "209": [
+      "Passed",
+      "Blocked"
+    ],
+    "210": [
+      "Passed",
+      "Blocked"
+    ],
+    "211": [
+      "Passed",
+      "Blocked"
+    ],
+    "212": [
+      "Passed",
+      "Blocked"
+    ],
+    "213": [
+      "Passed",
+      "Blocked"
+    ],
+    "214": [
+      "Passed",
+      "Blocked"
+    ],
+    "215": [
+      "Passed",
+      "Blocked"
+    ],
+    "216": [
+      "Passed",
+      "Blocked"
+    ],
+    "217": [
+      "Passed",
+      "Blocked"
+    ],
+    "218": [
+      "Passed",
+      "Blocked"
+    ],
+    "219": [
+      "Passed",
+      "Blocked"
+    ],
+    "220": [
+      "Passed",
+      "Blocked"
+    ],
+    "221": [
+      "Passed",
+      "Blocked"
+    ],
+    "222": [
+      "Passed",
+      "Blocked"
+    ],
+    "223": [
+      "Passed",
+      "Blocked"
+    ],
+    "224": [
+      "Passed",
+      "Blocked"
+    ],
+    "225": [
+      "Passed",
+      "Blocked"
+    ],
+    "226": [
+      "Passed",
+      "Blocked"
+    ],
+    "227": [
+      "Passed",
+      "Blocked"
+    ],
+    "228": [
+      "Passed",
+      "Blocked"
+    ],
+    "229": [
+      "Passed",
+      "Blocked"
+    ],
+    "230": "Passed",
+    "231": "Passed",
+    "232": "Passed",
+    "233": "Passed",
+    "234": "Passed",
+    "235": "Passed",
+    "236": "Passed",
+    "237": "Passed",
+    "238": [
+      "Passed",
+      "Blocked"
+    ],
+    "239": [
+      "Passed",
+      "Blocked"
+    ],
+    "240": [
+      "Passed",
+      "Blocked"
+    ],
+    "241": [
+      "Passed",
+      "Blocked"
+    ],
+    "242": [
+      "Passed",
+      "Blocked"
+    ],
+    "243": [
+      "Passed",
+      "Blocked"
+    ],
+    "244": [
+      "Passed",
+      "Blocked"
+    ],
+    "245": [
+      "Passed",
+      "Blocked"
+    ],
+    "246": [
+      "Passed",
+      "Blocked"
+    ],
+    "247": [
+      "Passed",
+      "Blocked"
+    ],
+    "248": [
+      "Passed",
+      "Blocked"
+    ],
+    "249": [
+      "Passed",
+      "Blocked"
+    ],
+    "250": [
+      "Passed",
+      "Blocked"
+    ],
+    "251": [
+      "Passed",
+      "Blocked"
+    ],
+    "252": [
+      "Passed",
+      "Blocked"
+    ],
+    "253": [
+      "Passed",
+      "Blocked"
+    ],
+    "254": [
+      "Passed",
+      "Blocked"
+    ],
+    "255": [
+      "Passed",
+      "Blocked"
+    ],
+    "256": "Passed",
+    "257": [
+      "Passed",
+      "Blocked"
+    ],
+    "258": [
+      "Passed",
+      "Blocked"
+    ],
+    "259": [
+      "Passed",
+      "Blocked"
+    ],
+    "260": "Passed",
+    "261": [
+      "Passed",
+      "Blocked"
+    ],
+    "262": [
+      "Passed",
+      "Blocked"
+    ],
+    "263": [
+      "Passed",
+      "Blocked"
+    ],
+    "264": [
+      "Passed",
+      "Blocked"
+    ],
+    "265": [
+      "Passed",
+      "Blocked"
+    ],
+    "266": [
+      "Passed",
+      "Blocked"
+    ],
+    "267": [
+      "Passed",
+      "Blocked"
+    ],
+    "268": [
+      "Passed",
+      "Blocked"
+    ],
+    "269": [
+      "Passed",
+      "Blocked"
+    ],
+    "270": [
+      "Passed",
+      "Blocked"
+    ],
+    "271": [
+      "Passed",
+      "Blocked"
+    ],
+    "272": [
+      "Passed",
+      "Blocked"
+    ],
+    "273": [
+      "Passed",
+      "Blocked"
+    ],
+    "274": [
+      "Passed",
+      "Blocked"
+    ],
+    "275": [
+      "Passed",
+      "Blocked"
+    ],
+    "276": [
+      "Passed",
+      "Blocked"
+    ],
+    "277": [
+      "Passed",
+      "Blocked"
+    ],
+    "278": [
+      "Passed",
+      "Blocked"
+    ],
+    "279": [
+      "Passed",
+      "Blocked"
+    ],
+    "280": [
+      "Passed",
+      "Blocked"
+    ],
+    "281": [
+      "Passed",
+      "Blocked"
+    ],
+    "282": [
+      "Passed",
+      "Blocked"
+    ],
+    "283": [
+      "Passed",
+      "Blocked"
+    ],
+    "284": [
+      "Passed",
+      "Blocked"
+    ],
+    "285": [
+      "Passed",
+      "Blocked"
+    ],
+    "286": [
+      "Passed",
+      "Blocked"
+    ],
+    "287": [
+      "Passed",
+      "Blocked"
+    ],
+    "288": [
+      "Passed",
+      "Blocked"
+    ],
+    "289": [
+      "Passed",
+      "Blocked"
+    ],
+    "290": [
+      "Passed",
+      "Blocked"
+    ],
+    "291": [
+      "Passed",
+      "Blocked"
+    ],
+    "292": [
+      "Passed",
+      "Blocked"
+    ],
+    "293": [
+      "Passed",
+      "Blocked"
+    ],
+    "294": [
+      "Passed",
+      "Blocked"
+    ],
+    "295": [
+      "Passed",
+      "Blocked"
+    ],
+    "296": [
+      "Passed",
+      "Blocked"
+    ],
+    "297": [
+      "Passed",
+      "Blocked"
+    ],
+    "298": [
+      "Passed",
+      "Blocked"
+    ],
+    "299": [
+      "Passed",
+      "Blocked"
+    ],
+    "300": [
+      "Passed",
+      "Blocked"
+    ],
+    "301": [
+      "Passed",
+      "Blocked"
+    ]
+  }
+}

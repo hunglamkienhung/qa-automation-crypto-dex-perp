@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qa-core"
+version = "1.0.0"
+description = "Shared QA core: grading with fixed precedence, append-only result queue, measurement controls, reporting, gate, idempotent bug flow."
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = []
+
+[project.scripts]
+qa-report = "qa_core.reporting:main"
+qa-verify = "qa_core.verify_expectations:main"
+qa-bugflow = "qa_core.bugflow:main"
+
+[tool.setuptools.packages.find]
+include = ["qa_core*"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["selftest"]
