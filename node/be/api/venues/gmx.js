@@ -28,7 +28,7 @@
 
 const PRICES = 'https://arbitrum-api.gmxinfra.io';
 const MARKETS = 'https://arbitrum.gmxapi.io';
-const USER_AGENT = 'qa-automation-crypto-perp/1.0 (read-only invariants)';
+const USER_AGENT = 'qa-automation-crypto-dex-perp/1.0 (read-only invariants)';
 const TIMEOUT_MS = 20_000;
 
 const USD_DECIMALS = 30;

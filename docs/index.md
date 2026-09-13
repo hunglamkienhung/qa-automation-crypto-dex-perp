@@ -1,11 +1,11 @@
-# qa-automation-crypto-perp — docs
+# qa-automation-crypto-dex-perp — docs
 
 QA automation for a crypto-perpetuals domain: **301 cases**, one shared grading
 core, and two stacks (Node + Python) that read one Gherkin set and return the
 **same verdict for every case**.
 
-→ **[The repository](https://github.com/hunglamkienhung/qa-automation-crypto-perp)** ·
-[README](https://github.com/hunglamkienhung/qa-automation-crypto-perp#readme)
+→ **[The repository](https://github.com/hunglamkienhung/qa-automation-crypto-dex-perp)** ·
+[README](https://github.com/hunglamkienhung/qa-automation-crypto-dex-perp#readme)
 
 ## Contents
 

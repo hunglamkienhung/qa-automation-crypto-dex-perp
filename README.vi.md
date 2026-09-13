@@ -1,4 +1,4 @@
-# qa-automation-crypto-perp
+# qa-automation-crypto-dex-perp
 
 Kiểm thử tự động cho một miền hợp đồng phái sinh (perpetuals) crypto, dựng như
 một hệ thống chạy được chứ không phải slide. Một miền sàn phái sinh được test ở

@@ -1,4 +1,4 @@
-# qa-automation-crypto-perp
+# qa-automation-crypto-dex-perp
 
 ![Pytest-BDD](https://img.shields.io/badge/Pytest--BDD-tests-0A9EDC?logo=pytest&logoColor=white)
 ![Cucumber](https://img.shields.io/badge/Cucumber-BDD-23D96C?logo=cucumber&logoColor=white)
@@ -7,7 +7,7 @@
 ![SQLite](https://img.shields.io/badge/SQLite-store-003B57?logo=sqlite&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![Node](https://img.shields.io/badge/Node-24-5FA04E?logo=nodedotjs&logoColor=white)
-[![CI](https://github.com/hunglamkienhung/qa-automation-crypto-perp/actions/workflows/ci.yml/badge.svg)](https://github.com/hunglamkienhung/qa-automation-crypto-perp/actions/workflows/ci.yml)
+[![CI](https://github.com/hunglamkienhung/qa-automation-crypto-dex-perp/actions/workflows/ci.yml/badge.svg)](https://github.com/hunglamkienhung/qa-automation-crypto-dex-perp/actions/workflows/ci.yml)
 
 QA automation for a crypto-perpetuals domain, built as a working system rather
 than a slideshow. One derivatives-exchange domain tested at **every layer it

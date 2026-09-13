@@ -18,7 +18,7 @@ import urllib.request
 
 PRICES = "https://arbitrum-api.gmxinfra.io"
 MARKETS = "https://arbitrum.gmxapi.io"
-USER_AGENT = "qa-automation-crypto-perp/1.0 (read-only invariants)"
+USER_AGENT = "qa-automation-crypto-dex-perp/1.0 (read-only invariants)"
 TIMEOUT_S = 20
 
 USD_DECIMALS = 30
