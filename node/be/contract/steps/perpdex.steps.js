@@ -405,9 +405,15 @@ When('the admin sets the {word} index through the admin feed to {float}', { time
   await attempt(this, () => this.dex.sender.send(this.who.admin, this.dex.d.oracle, 'setPrice(uint16,uint64)', [marketId(sym), U.price(String(price))]));
 });
 When('{word} publishes an {word} reading of {float} stamped {int} seconds ago', { timeout: 30_000 }, async function (name, sym, price, ago) {
+  // Pin the block this write lands in to a KNOWN timestamp (now + 1), and stamp
+  // the reading relative to that same timestamp, so the later index read sees an
+  // age of EXACTLY `ago` seconds. Without this, the chain clock ticking one
+  // block forward between the write and the read makes the "exactly maxAge is
+  // fresh" boundary (@case:99) race by a second and fail intermittently.
   const block = await this.dex.sender.call(this.who.admin, this.dex.ex, 'clockMicros()', []);
-  const now = BigInt(block) / 1_000_000n;
-  await attempt(this, () => this.dex.setMockReading(addr(this, name), marketId(sym), U.price(String(price)), now - BigInt(ago)));
+  const base = BigInt(block) / 1_000_000n + 1n;
+  await this.dex.setNextBlockTimestamp(base);
+  await attempt(this, () => this.dex.setMockReading(addr(this, name), marketId(sym), U.price(String(price)), base - BigInt(ago)));
 });
 
 // a fill that lands the mark above/below index by a percentage (for funding per market)

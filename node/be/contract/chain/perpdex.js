@@ -106,6 +106,8 @@ class PerpDex {
     return receipt.contractAddress;
   }
   async warp(seconds) { await rpc('evm_increaseTime', [seconds], this.url); await this.mine(); }
+  /** Force the NEXT mined block's timestamp, so a test can place a write at a known time. */
+  async setNextBlockTimestamp(ts) { await rpc('evm_setNextBlockTimestamp', [Number(ts)], this.url); }
   async snapshot() { return rpc('evm_snapshot', [], this.url); }
   async revert(id) { return rpc('evm_revert', [id], this.url); }
 
