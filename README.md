@@ -39,7 +39,7 @@ the harder invariants are exercised deterministically.
 
 ## Layers and case counts
 
-**301 cases**, each with an immutable ID, run in **both** stacks and reconciled
+**303 cases**, each with an immutable ID, run in **both** stacks and reconciled
 case-by-case.
 
 | Layer | Target | Cases | Where |
@@ -48,10 +48,17 @@ case-by-case.
 | Contract | GMX v1 Vault + v2 markets on Arbitrum | 25 | `be/contract` |
 | DB | mini-api's SQLite, opened directly | 26 | `be/db` |
 | API | mini-api REST over that SQLite | 40 | `be/api` |
+| API | mini-api authentication edges (security) | 2 | `be/api` |
 | API | GMX public price/market API | 43 | `be/api` |
 | Bot | risk gate (pure) + operations on PerpDEX | 35 | `be/bot` |
 | FE | the GMX trading screen (Playwright) | 11 | `fe/ui` |
-| | **Total** | **301** | |
+| | **Total** | **303** | |
+
+The mini-api's authorization surface is covered across `be-api-mini.feature`
+(no/unknown/expired token → 401, scope → 403, one subject reading another → 403,
+admin-only mint, CORS allowlist, rate-limit) and `be-mini-security.feature`
+(a non-Bearer Authorization header → 401, and no bearer token echoed in a public
+response).
 
 ## The two ideas worth a minute
 

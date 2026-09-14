@@ -11,7 +11,7 @@
       "bot": "the bot in be/bot, trading on PerpDEX"
     },
     "idPolicy": "immutable",
-    "nextId": 302,
+    "nextId": 304,
     "note": "IDs are allocated here once and never reused. Every scenario carries @case:N; an N missing here is an error, not a new case."
   },
   "cases": {
@@ -3444,6 +3444,29 @@
       "steps": [
         "GET prices/candles?tokenSymbol=&period=1m",
         "Expect a 4xx status"
+      ]
+    },
+    "302": {
+      "key": "api.security.malformed",
+      "module": "08. API — authentication edges",
+      "layer": "BE/API",
+      "tier": "api-security",
+      "title": "A malformed Authorization header (no Bearer scheme) is 401",
+      "priority": "High",
+      "steps": [
+        "GET /portfolio/summary?account=<any> with header \"Authorization: Token k_whatever\" (no Bearer scheme) → 401 unauthenticated"
+      ]
+    },
+    "303": {
+      "key": "api.security.hygiene",
+      "module": "08. API — authentication edges",
+      "layer": "BE/API",
+      "tier": "api-security",
+      "title": "Public responses never carry a bearer token",
+      "priority": "Medium",
+      "steps": [
+        "GET /markets → the JSON body contains no \"k_\" bearer token",
+        "GET /health → the JSON body contains no \"k_\" bearer token"
       ]
     }
   }

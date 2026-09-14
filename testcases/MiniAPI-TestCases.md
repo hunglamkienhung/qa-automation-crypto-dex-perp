@@ -1,6 +1,6 @@
 # mini-api — DB and API test cases
 
-66 cases over the indexer store and the REST layer in `../services/mini-api`. Generated from `miniapi.cases.js`; do not edit by hand.
+68 cases over the indexer store and the REST layer in `../services/mini-api`. Generated from `miniapi.cases.js`; do not edit by hand.
 
 IDs are immutable and shared with `../fixtures/testcases.json`, which the automation binds to.
 
@@ -883,4 +883,33 @@ IDs are immutable and shared with `../fixtures/testcases.json`, which the automa
 2. unpause → total +1
 
 **Expected.** 200 with stale data while paused; /health reveals it
+
+## 08. API — authentication edges
+
+### C302 · A malformed Authorization header (no Bearer scheme) is 401
+
+**Function** `Authorization header` · **Tier** BE/API · **Priority** High · **Run** Auto
+
+**Purpose.** The token check must key on the Bearer scheme, not merely on some header being present
+
+**Precondition.** anvil with a fresh PerpDEX; mini-api running and its indexer caught up
+
+**Steps.**
+1. GET /portfolio/summary?account=<any> with header "Authorization: Token k_whatever" (no Bearer scheme) → 401 unauthenticated
+
+**Expected.** 401 unauthenticated
+
+### C303 · Public responses never carry a bearer token
+
+**Function** `secret hygiene` · **Tier** BE/API · **Priority** Medium · **Run** Auto
+
+**Purpose.** A minted token is returned once at /auth/token and must never echo back in ordinary reads
+
+**Precondition.** anvil with a fresh PerpDEX; mini-api running and its indexer caught up
+
+**Steps.**
+1. GET /markets → the JSON body contains no "k_" bearer token
+2. GET /health → the JSON body contains no "k_" bearer token
+
+**Expected.** No credential in the response bodies
 

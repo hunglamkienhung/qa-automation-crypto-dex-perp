@@ -23,6 +23,7 @@ pytest_plugins = [
     "be.contract.steps.perpdex_steps",
     "be.db.steps.store_steps",
     "be.api.steps.mini_steps",
+    "be.api.steps.mini_security_steps",
     "be.bot.steps.bot_steps",
     "be.contract.steps.gmx_extra_steps",
     "be.api.steps.gmx_extra_steps",

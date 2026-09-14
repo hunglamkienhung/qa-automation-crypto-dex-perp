@@ -11,8 +11,8 @@
     "The expanded GMX contract (265-281) and API (282-301) cases read the live Arbitrum RPC and GMX public endpoints, so they declare [\"Passed\",\"Blocked\"] -- an unreachable node or venue is Blocked, never Failed."
   ],
   "summary": {
-    "total": 301,
-    "Passed": 300,
+    "total": 303,
+    "Passed": 302,
     "Failed": 0,
     "Blocked": 1,
     "note": "nominal: every live source reachable and anvil running with a fresh PerpDEX"
@@ -1186,6 +1186,14 @@
       "Blocked"
     ],
     "301": [
+      "Passed",
+      "Blocked"
+    ],
+    "302": [
+      "Passed",
+      "Blocked"
+    ],
+    "303": [
       "Passed",
       "Blocked"
     ]

@@ -18,6 +18,7 @@ const api = (o) => ({ tier: 'BE/API', bindTier: 'api-mini', run: 'Auto', priorit
 
 const DBM = '05. DB — indexer store';
 const APIM = '06. API — mini-api over the store';
+const MSEC = '08. API — authentication edges';
 
 const cases = [
   // ------------------------------------------------------------ 05 DB: chain <-> store
@@ -355,6 +356,18 @@ const cases = [
     purpose: 'The failure that looks like health: the store is frozen, the API is fine, only the block number and the age give it away',
     steps: ['pause indexer; alice buys at market; wait 2 s → GET /trades total unchanged, status 200, X-Indexed-Block unchanged; GET /health indexer_paused true and age_seconds growing', 'unpause → total +1'],
     expected: '200 with stale data while paused; /health reveals it' }),
+
+  // ------------------------------------------------------------ 08 API: authentication edges (secret hygiene)
+  api({ key: 'api.security.malformed', bindTier: 'api-security', module: MSEC, fn: 'Authorization header', priority: H,
+    title: 'A malformed Authorization header (no Bearer scheme) is 401',
+    purpose: 'The token check must key on the Bearer scheme, not merely on some header being present',
+    steps: ['GET /portfolio/summary?account=<any> with header "Authorization: Token k_whatever" (no Bearer scheme) → 401 unauthenticated'],
+    expected: '401 unauthenticated' }),
+  api({ key: 'api.security.hygiene', bindTier: 'api-security', module: MSEC, fn: 'secret hygiene', priority: M,
+    title: 'Public responses never carry a bearer token',
+    purpose: 'A minted token is returned once at /auth/token and must never echo back in ordinary reads',
+    steps: ['GET /markets → the JSON body contains no "k_" bearer token', 'GET /health → the JSON body contains no "k_" bearer token'],
+    expected: 'No credential in the response bodies' }),
 ];
 
 module.exports = { cases };
