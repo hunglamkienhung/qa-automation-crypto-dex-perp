@@ -39,7 +39,7 @@ the harder invariants are exercised deterministically.
 
 ## Layers and case counts
 
-**303 cases**, each with an immutable ID, run in **both** stacks and reconciled
+**1000 cases**, each with an immutable ID, run in **both** stacks and reconciled
 case-by-case.
 
 | Layer | Target | Cases | Where |
@@ -50,9 +50,9 @@ case-by-case.
 | API | mini-api REST over that SQLite | 40 | `be/api` |
 | API | mini-api authentication edges (security) | 2 | `be/api` |
 | API | GMX public price/market API | 43 | `be/api` |
-| Bot | risk gate (pure) + operations on PerpDEX | 35 | `be/bot` |
+| Bot | risk gate (pure) + operations on PerpDEX | 732 | `be/bot` |
 | FE | the GMX trading screen (Playwright) | 11 | `fe/ui` |
-| | **Total** | **303** | |
+| | **Total** | **1000** | |
 
 The mini-api's authorization surface is covered across `be-api-mini.feature`
 (no/unknown/expired token → 401, scope → 403, one subject reading another → 403,

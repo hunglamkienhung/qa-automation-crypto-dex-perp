@@ -29,7 +29,7 @@ và là nơi tầng DB, API, bot, cùng các bất biến khó được kiểm m
 
 ## Tầng và số case
 
-**303 case**, mỗi case một ID bất biến, chạy ở **cả hai** stack và đối chiếu
+**1000 case**, mỗi case một ID bất biến, chạy ở **cả hai** stack và đối chiếu
 từng case.
 
 | Tầng | Đối tượng | Số case | Ở đâu |
@@ -40,9 +40,9 @@ từng case.
 | API | REST mini-api trên SQLite đó | 40 | `be/api` |
 | API | mini-api ranh giới xác thực (security) | 2 | `be/api` |
 | API | API giá/market công khai của GMX | 43 | `be/api` |
-| Bot | cổng rủi ro (thuần) + thao tác trên PerpDEX | 35 | `be/bot` |
+| Bot | cổng rủi ro (thuần) + thao tác trên PerpDEX | 732 | `be/bot` |
 | FE | màn hình giao dịch GMX (Playwright) | 11 | `fe/ui` |
-| | **Tổng** | **303** | |
+| | **Tổng** | **1000** | |
 
 ## Hai ý đáng một phút
 
